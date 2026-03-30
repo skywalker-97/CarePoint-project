@@ -42,7 +42,18 @@ const Doctors = () => {
                 <div className='w-full grid grid-cols-auto gap-4 gap-y-6'>
                     {filterDoc.map((item, index) => (
                         <div onClick={() => { navigate(`/appointment/${item._id}`); scrollTo(0, 0); }} className='border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500' key={index}>
-                            {item.image ? <img className='bg-blue-50 w-full h-48 object-cover' src={item.image} alt={item.name} /> : <div className='bg-blue-50 w-full h-48 flex items-center justify-center text-primary font-bold text-4xl'>{item.name.charAt(0)}</div>}
+                            {(item.image || item.fallbackImage) ? (
+                                <img
+                                    className='bg-blue-50 w-full h-48 object-cover'
+                                    src={item.image || item.fallbackImage}
+                                    alt={item.name}
+                                    onError={(e) => {
+                                        if (item.fallbackImage && e.currentTarget.src !== item.fallbackImage) {
+                                            e.currentTarget.src = item.fallbackImage;
+                                        }
+                                    }}
+                                />
+                            ) : <div className='bg-blue-50 w-full h-48 flex items-center justify-center text-primary font-bold text-4xl'>{item.name.charAt(0)}</div>}
                             <div className='p-4'>
                                 <div className={`flex items-center gap-2 text-sm text-center ${item.available ? 'text-green-500' : 'text-gray-500'}`}>
                                     <p className={`w-2 h-2 ${item.available ? 'bg-green-500' : 'bg-gray-500'} rounded-full`}></p><p>{item.available ? 'Available' : 'Not Available'}</p>

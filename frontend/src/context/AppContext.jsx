@@ -58,17 +58,21 @@ const AppContextProvider = (props) => {
         }
     }, [token]);
 
-    // Map backend doctors to asset images if name matches and image is missing
+    // Map backend doctors to asset images if name matches and image is missing/invalid
     const getEnhancedDoctors = () => {
         const baseDoctors = doctors.length > 0 ? doctors : mockDoctors;
         return baseDoctors.map(doc => {
-            if (!doc.image || doc.image === "") {
-                const assetDoc = mockDoctors.find(m => m.name === doc.name);
-                if (assetDoc) {
-                    return { ...doc, image: assetDoc.image };
-                }
+            const assetDoc = mockDoctors.find(m => m.name === doc.name);
+            const fallbackImage = assetDoc?.image || '';
+
+            const imageValue = typeof doc.image === 'string' ? doc.image : '';
+            const isLikelyLocalDevPath = imageValue.includes('/src/assets/') || imageValue.includes('\\src\\assets\\') || imageValue.startsWith('file:') || /^[A-Za-z]:\\/.test(imageValue);
+
+            if (!imageValue || isLikelyLocalDevPath) {
+                return { ...doc, image: fallbackImage, fallbackImage };
             }
-            return doc;
+
+            return { ...doc, fallbackImage };
         });
     }
 
