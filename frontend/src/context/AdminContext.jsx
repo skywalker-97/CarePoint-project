@@ -10,7 +10,7 @@ const AdminContextProvider = (props) => {
     const [doctors, setDoctors] = useState([]);
     const [appointments, setAppointments] = useState([]);
 
-    const backendUrl = "http://localhost:4000";
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
     const getAllDoctors = async () => {
         try {

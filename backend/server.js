@@ -13,7 +13,14 @@ connectDB();
 
 // middlewares
 app.use(express.json());
-app.use(cors());
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'];
+app.use(cors({ origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('render.com')) {
+        callback(null, true);
+    } else {
+        callback(new Error('Not allowed by CORS'));
+    }
+}}));
 
 // api endpoints
 app.use('/api/user', userRouter);
