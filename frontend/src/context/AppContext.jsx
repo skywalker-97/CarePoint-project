@@ -45,6 +45,10 @@ const AppContextProvider = (props) => {
 
     // Use initialDoctors from assets as fallback/mock
     const mockDoctors = initialDoctors;
+    const imageByDocId = mockDoctors.reduce((acc, doc) => {
+        acc[doc._id] = doc.image;
+        return acc;
+    }, {});
 
     useEffect(() => {
         getDoctorsData();
@@ -66,10 +70,15 @@ const AppContextProvider = (props) => {
             const fallbackImage = assetDoc?.image || '';
 
             const imageValue = typeof doc.image === 'string' ? doc.image : '';
+            const imageFromKey = imageByDocId[imageValue] || '';
             const isLikelyLocalDevPath = imageValue.includes('/src/assets/') || imageValue.includes('\\src\\assets\\') || imageValue.startsWith('file:') || /^[A-Za-z]:\\/.test(imageValue);
 
             if (!imageValue || isLikelyLocalDevPath) {
                 return { ...doc, image: fallbackImage, fallbackImage };
+            }
+
+            if (imageFromKey) {
+                return { ...doc, image: imageFromKey, fallbackImage };
             }
 
             return { ...doc, fallbackImage };

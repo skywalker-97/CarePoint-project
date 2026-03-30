@@ -8,7 +8,7 @@ import { doctors as initialDoctors } from '../assets/assets_frontend/assets';
 const AddDoctor = () => {
     const { backendUrl, aToken } = useContext(AdminContext);
 
-    const [docImg, setDocImg] = useState(''); // Stores the name/key of the asset
+    const [docImgKey, setDocImgKey] = useState(''); // Stores stable key like doc1/doc2
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -26,7 +26,7 @@ const AddDoctor = () => {
 
         try {
             const doctorData = {
-                image: docImg,
+                image: docImgKey,
                 name,
                 email,
                 password,
@@ -50,7 +50,7 @@ const AddDoctor = () => {
                 setDegree('');
                 setAbout('');
                 setFees('');
-                setDocImg('');
+                setDocImgKey('');
             } else {
                 toast.error(data.message);
             }
@@ -71,8 +71,8 @@ const AddDoctor = () => {
                         {initialDoctors.map((doc, index) => (
                             <img 
                                 key={index}
-                                onClick={() => setDocImg(doc.image)}
-                                className={`w-14 h-14 rounded-full cursor-pointer object-cover border-2 transition-all ${docImg === doc.image ? 'border-primary scale-110' : 'border-transparent hover:border-gray-300'}`}
+                                onClick={() => setDocImgKey(doc._id)}
+                                className={`w-14 h-14 rounded-full cursor-pointer object-cover border-2 transition-all ${docImgKey === doc._id ? 'border-primary scale-110' : 'border-transparent hover:border-gray-300'}`}
                                 src={doc.image} 
                                 alt={`Doctor ${index + 1}`} 
                             />
