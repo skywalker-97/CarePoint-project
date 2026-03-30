@@ -1,0 +1,94 @@
+import { createContext, useEffect, useState } from "react";
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { doctors as initialDoctors } from "../assets/assets_frontend/assets";
+
+export const AppContext = createContext();
+
+const AppContextProvider = (props) => {
+    
+    const backendUrl = "http://localhost:4000";
+    
+    const [doctors, setDoctors] = useState([]);
+    const [token, setToken] = useState(localStorage.getItem('token') ? localStorage.getItem('token') : false);
+    const [userData, setUserData] = useState(false);
+
+    // Fetch doctors from backend
+    const getDoctorsData = async () => {
+        try {
+            const { data } = await axios.get(backendUrl + '/api/doctor/list');
+            if (data.success) {
+                setDoctors(data.doctors);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(error.message);
+        }
+    }
+
+    // Fetch user profile from backend
+    const loadUserProfileData = async () => {
+        try {
+            const { data } = await axios.get(backendUrl + '/api/user/get-profile', { headers: { token } });
+            if (data.success) {
+                setUserData(data.userData);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(error.message);
+        }
+    }
+
+    // Use initialDoctors from assets as fallback/mock
+    const mockDoctors = initialDoctors;
+
+    useEffect(() => {
+        getDoctorsData();
+    }, []);
+
+    useEffect(() => {
+        if (token) {
+            loadUserProfileData();
+        } else {
+            setUserData(false);
+        }
+    }, [token]);
+
+    // Map backend doctors to asset images if name matches and image is missing
+    const getEnhancedDoctors = () => {
+        const baseDoctors = doctors.length > 0 ? doctors : mockDoctors;
+        return baseDoctors.map(doc => {
+            if (!doc.image || doc.image === "") {
+                const assetDoc = mockDoctors.find(m => m.name === doc.name);
+                if (assetDoc) {
+                    return { ...doc, image: assetDoc.image };
+                }
+            }
+            return doc;
+        });
+    }
+
+    const value = {
+        doctors: getEnhancedDoctors(), 
+        currencySymbol: '$',
+        token,
+        setToken,
+        backendUrl,
+        userData,
+        setUserData,
+        loadUserProfileData,
+        getDoctorsData
+    };
+
+    return (
+        <AppContext.Provider value={value}>
+            {props.children}
+        </AppContext.Provider>
+    )
+}
+
+export default AppContextProvider;
