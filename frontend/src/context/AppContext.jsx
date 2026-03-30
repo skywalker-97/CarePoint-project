@@ -72,8 +72,24 @@ const AppContextProvider = (props) => {
         });
     }
 
+    const currency = '$';
+
+    const slotDateFormat = (slotDate) => {
+        const dateArray = slotDate.split('_');
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return dateArray[0] + " " + months[Number(dateArray[1]) - 1] + " " + dateArray[2];
+    }
+
+    const calculateAge = (dob) => {
+        const today = new Date();
+        const birthDate = new Date(dob);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        return age;
+    }
+
     const value = {
         doctors: getEnhancedDoctors(), 
+        currency,
         currencySymbol: '$',
         token,
         setToken,
@@ -81,7 +97,9 @@ const AppContextProvider = (props) => {
         userData,
         setUserData,
         loadUserProfileData,
-        getDoctorsData
+        getDoctorsData,
+        slotDateFormat,
+        calculateAge
     };
 
     return (
