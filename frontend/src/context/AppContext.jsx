@@ -1,17 +1,19 @@
-import { createContext, useEffect, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { doctors as initialDoctors } from "../assets/assets_frontend/assets";
+import { doctors as initialDoctors } from '../assets/assets_frontend/assets';
+import { io } from "socket.io-client";
 
 export const AppContext = createContext();
 
 const AppContextProvider = (props) => {
     
     const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+    const socket = io(backendUrl);
     
     const [doctors, setDoctors] = useState([]);
     const [token, setToken] = useState(localStorage.getItem('token') ? localStorage.getItem('token') : false);
-    const [userData, setUserData] = useState(false);
+    const [userData, setUserData] = useState(null);
 
     // Fetch doctors from backend
     const getDoctorsData = async () => {
@@ -58,7 +60,7 @@ const AppContextProvider = (props) => {
         if (token) {
             loadUserProfileData();
         } else {
-            setUserData(false);
+            setUserData(null);
         }
     }, [token]);
 
@@ -112,7 +114,8 @@ const AppContextProvider = (props) => {
         loadUserProfileData,
         getDoctorsData,
         slotDateFormat,
-        calculateAge
+        calculateAge,
+        socket
     };
 
     return (

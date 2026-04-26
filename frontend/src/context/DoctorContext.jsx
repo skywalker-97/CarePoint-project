@@ -1,6 +1,7 @@
 import { createContext, useState } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { doctors as initialDoctors } from '../assets/assets_frontend/assets';
 
 export const DoctorContext = createContext();
 
@@ -75,7 +76,15 @@ const DoctorContextProvider = (props) => {
         try {
             const { data } = await axios.get(backendUrl + '/api/doctor/profile', { headers: { dtoken: dToken } });
             if (data.success) {
-                setProfileData(data.profileData);
+                const doc = data.profileData;
+                const assetDoc = initialDoctors.find(m => m.name === doc.name);
+                const fallbackImage = assetDoc?.image || '';
+                
+                if (!doc.image || doc.image.includes('/src/assets/') || doc.image.includes('\\src\\assets\\')) {
+                    setProfileData({ ...doc, image: fallbackImage });
+                } else {
+                    setProfileData(doc);
+                }
             } else {
                 toast.error(data.message);
             }

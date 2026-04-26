@@ -1,87 +1,190 @@
-import React, { useContext, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import { assets } from '../assets/assets_frontend/assets';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { DoctorContext } from '../context/DoctorContext';
-import { assets } from '../assets/assets_frontend/assets';
+import { ChevronDown, User, LayoutDashboard, LogOut, Settings, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { token, setToken, userData } = useContext(AppContext);
     const { dToken, setDToken, profileData } = useContext(DoctorContext);
-    
-    // For mobile menu
+    const [isScrolled, setIsScrolled] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
 
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     const logout = () => {
-        if (token) {
-            setToken(false);
-            localStorage.removeItem('token');
-        }
-        if (dToken) {
-            setDToken('');
-            localStorage.removeItem('dToken');
-        }
+        setToken(false);
+        setDToken('');
+        localStorage.removeItem('token');
+        localStorage.removeItem('dToken');
         navigate('/login');
     };
 
+    const navLinks = [
+        { name: 'Home', path: '/' },
+        { name: 'All Doctors', path: '/doctors' },
+        { name: 'About', path: '/about' },
+        { name: 'Contact', path: '/contact' },
+    ];
+
     return (
-        <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400'>
-            <div onClick={() => navigate('/')} className='cursor-pointer text-2xl font-bold text-primary flex items-center gap-2'>
-                <img className='w-44' src={assets.logo} alt="CarePoint Logo" />
+        <nav className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-500 px-6 py-3 ${
+            isScrolled || showMenu ? 'bg-white/80 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.03)] border-b border-slate-100/50' : 'bg-transparent'
+        }`}>
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+                {/* Logo */}
+                <div onClick={() => {navigate('/'); scrollTo(0,0)}} className="cursor-pointer flex items-center gap-2 group">
+                    <img className="w-36 sm:w-44 transition-transform group-hover:scale-[1.02]" src={assets.logo} alt="CarePoint" />
+                </div>
+
+                {/* Desktop Menu */}
+                <ul className="hidden lg:flex items-center gap-10">
+                    {navLinks.map((link) => (
+                        <NavLink 
+                            key={link.path} 
+                            to={link.path} 
+                            className={({isActive}) => `text-[13px] font-bold tracking-tight transition-all relative py-1 group ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            {link.name}
+                            <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full ${location.pathname === link.path ? 'w-full' : ''}`} />
+                        </NavLink>
+                    ))}
+                </ul>
+
+                {/* Right Side Actions */}
+                <div className="flex items-center gap-5">
+                    {token && userData ? (
+                        <div className="flex items-center gap-4">
+                            <NotificationBell token={token} type="user" />
+                            <div className="relative group flex items-center gap-3 cursor-pointer bg-slate-50/80 hover:bg-white p-1 pr-4 rounded-full border border-slate-100 transition-all hover:shadow-sm">
+                                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-black text-sm shadow-md ring-2 ring-white">
+                                    {userData?.name ? userData.name.charAt(0) : 'U'}
+                                </div>
+                                <div className="hidden sm:block">
+                                    <p className="text-[13px] font-bold text-slate-800 leading-tight">{userData?.name ? userData.name.split(' ')[0] : 'User'}</p>
+                                </div>
+                                <ChevronDown size={14} className="text-slate-400 group-hover:rotate-180 transition-transform" />
+                                
+                                {/* Dropdown Menu */}
+                                <div className="absolute top-full right-0 pt-3 z-[100] opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300">
+                                    <div className="bg-white/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-100 p-2 min-w-[240px]">
+                                        <div className="px-5 py-4 border-b border-slate-50 mb-1">
+                                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Patient Portal</p>
+                                            <p className="text-sm font-bold text-slate-900 truncate">{userData.name}</p>
+                                        </div>
+                                        <div className="p-1 space-y-1">
+                                            <button onClick={() => navigate('/my-profile')} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-primary rounded-2xl transition-all active:scale-95">
+                                                <User size={18} className="opacity-70" /> My Profile
+                                            </button>
+                                            <button onClick={() => navigate('/my-appointments')} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-primary rounded-2xl transition-all active:scale-95">
+                                                <LayoutDashboard size={18} className="opacity-70" /> Appointments
+                                            </button>
+                                            <div className="h-px bg-slate-50 mx-4 my-1" />
+                                            <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-all active:scale-95">
+                                                <LogOut size={18} className="opacity-70" /> Sign Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : dToken ? (
+                        <div className="flex items-center gap-4">
+                            <NotificationBell token={dToken} type="doctor" />
+                            <div className="relative group flex items-center gap-3 cursor-pointer bg-slate-50/80 hover:bg-white p-1 pr-4 rounded-full border border-slate-100 transition-all hover:shadow-sm">
+                                <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-sm shadow-md ring-2 ring-white overflow-hidden">
+                                    {profileData?.image ? (
+                                        <img src={profileData.image} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        profileData?.name ? profileData.name.charAt(0) : 'D'
+                                    )}
+                                </div>
+                                <div className="hidden sm:block">
+                                    <p className="text-[13px] font-bold text-slate-800 leading-tight">
+                                        {profileData?.name ? (profileData.name.startsWith('Dr.') ? profileData.name.split(' ')[1] : profileData.name.split(' ')[0]) : 'Doc'}
+                                    </p>
+                                </div>
+                                <ChevronDown size={14} className="text-slate-400 group-hover:rotate-180 transition-transform" />
+                                
+                                {/* Dropdown Menu */}
+                                <div className="absolute top-full right-0 pt-3 z-[100] opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300">
+                                    <div className="bg-white/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-100 p-2 min-w-[240px]">
+                                        <div className="px-5 py-4 border-b border-slate-50 mb-1">
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Doctor Portal</p>
+                                            <p className="text-sm font-bold text-slate-900 truncate">
+                                                {profileData?.name ? (profileData.name.startsWith('Dr.') ? profileData.name : `Dr. ${profileData.name}`) : 'Doctor'}
+                                            </p>
+                                        </div>
+                                        <div className="p-1 space-y-1">
+                                            <button onClick={() => navigate('/doctor-profile')} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 rounded-2xl transition-all active:scale-95">
+                                                <Settings size={18} className="opacity-70" /> Settings
+                                            </button>
+                                            <button onClick={() => navigate('/doctor-dashboard')} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 rounded-2xl transition-all active:scale-95">
+                                                <LayoutDashboard size={18} className="opacity-70" /> Dashboard
+                                            </button>
+                                            <div className="h-px bg-slate-50 mx-4 my-1" />
+                                            <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-all active:scale-95">
+                                                <LogOut size={18} className="opacity-70" /> Sign Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="hidden md:flex items-center gap-4">
+                             <button onClick={() => navigate('/admin-login')} className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all mr-2">Admin Portal</button>
+                             <button onClick={() => navigate('/login', { state: { mode: 'Login' } })} className="text-[13px] font-bold text-slate-500 hover:text-primary transition-all">Sign In</button>
+                             <button onClick={() => navigate('/login', { state: { mode: 'Sign Up' } })} className="px-7 py-3 bg-primary text-white rounded-full text-[13px] font-bold shadow-xl shadow-blue-500/25 hover:scale-[1.05] active:scale-[0.98] transition-all">Create Account</button>
+                        </div>
+                    )}
+
+                    {/* Mobile Menu Toggle */}
+                    <button 
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="lg:hidden p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                    >
+                        {showMenu ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </div>
-            
-            <ul className='hidden md:flex items-start gap-5 font-medium'>
-                <NavLink to='/' className={({isActive}) => isActive ? "text-primary pb-1 border-b-2 border-primary" : "text-gray-600 pb-1 hover:text-primary transition-all"}>
-                    <li className='py-1'>HOME</li>
-                </NavLink>
-                <NavLink to='/doctors' className={({isActive}) => isActive ? "text-primary pb-1 border-b-2 border-primary" : "text-gray-600 pb-1 hover:text-primary transition-all"}>
-                    <li className='py-1'>ALL DOCTORS</li>
-                </NavLink>
-                <NavLink to='/about' className={({isActive}) => isActive ? "text-primary pb-1 border-b-2 border-primary" : "text-gray-600 pb-1 hover:text-primary transition-all"}>
-                    <li className='py-1'>ABOUT</li>
-                </NavLink>
-                <NavLink to='/contact' className={({isActive}) => isActive ? "text-primary pb-1 border-b-2 border-primary" : "text-gray-600 pb-1 hover:text-primary transition-all"}>
-                    <li className='py-1'>CONTACT</li>
-                </NavLink>
-                <button onClick={() => navigate('/admin-login')} className='border border-gray-300 rounded-full px-4 py-1.5 text-xs text-gray-700 font-medium hover:bg-gray-100 transition-all'>
-                    Admin Panel
-                </button>
-            </ul>
-            <div className='flex items-center gap-4'>
-                {token && userData ? (
-                    <div className='flex items-center gap-2 cursor-pointer group relative'>
-                        <div className='w-8 h-8 rounded-full bg-gray-200 flex justify-center items-center text-primary font-bold'>{userData.name.charAt(0)}</div>
-                        <img className='w-2.5' src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E" alt="dropdown" />
-                        <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
-                            <div className='min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4'>
-                                <p onClick={() => navigate('/my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
-                                <p onClick={() => navigate('/my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
-                                <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
-                            </div>
-                        </div>
-                    </div>
-                ) : dToken ? (
-                    <div className='flex items-center gap-2 cursor-pointer group relative'>
-                        <div className='w-8 h-8 rounded-full bg-blue-100 flex justify-center items-center text-primary font-bold'>{profileData ? profileData.name.charAt(0) : 'D'}</div>
-                        <img className='w-2.5' src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E" alt="dropdown" />
-                        <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
-                            <div className='min-w-40 bg-stone-100 rounded flex flex-col gap-4 p-4'>
-                                <p onClick={() => navigate('/doctor-profile')} className='hover:text-black cursor-pointer'>Doctor Profile</p>
-                                <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className='flex gap-4 font-medium'>
-                         <button onClick={() => navigate('/login', { state: { mode: 'Login' } })} className='text-gray-600 hover:text-primary transition-all pr-4 border-r'>Login</button>
-                         <button onClick={() => navigate('/login', { state: { mode: 'Sign Up' } })} className='bg-primary text-white px-8 py-3 rounded-full font-light hidden md:block hover:bg-opacity-90 transition-all'>
-                            Create account
-                        </button>
-                    </div>
+
+            {/* Mobile Menu */}
+            <AnimatePresence>
+                {showMenu && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="lg:hidden absolute top-full left-0 right-0 bg-white shadow-2xl border-t border-slate-50 flex flex-col p-8 space-y-6"
+                    >
+                        {navLinks.map((link) => (
+                            <NavLink key={link.path} to={link.path} onClick={() => setShowMenu(false)} className={({isActive}) => `text-xl font-black ${isActive ? 'text-primary' : 'text-slate-900'}`}>
+                                {link.name}
+                            </NavLink>
+                        ))}
+                        <div className="h-px bg-slate-100" />
+                        {!token && !dToken && (
+                            <button onClick={() => {navigate('/login'); setShowMenu(false)}} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-lg">Get Started</button>
+                        )}
+                        <button onClick={() => {navigate('/admin-login'); setShowMenu(false)}} className="w-full py-3 text-slate-400 font-bold text-sm">Admin Portal</button>
+                    </motion.div>
                 )}
-            </div>
-        </div>
+            </AnimatePresence>
+        </nav>
     );
 };
+
 
 export default Navbar;

@@ -4,6 +4,7 @@ import { AppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { assets } from '../assets/assets_frontend/assets';
+import ReviewList from '../components/ReviewList';
 
 const Appointment = () => {
     const { docId } = useParams();
@@ -18,6 +19,9 @@ const Appointment = () => {
     const [docSlots, setDocSlots] = useState([]);
     const [slotIndex, setSlotIndex] = useState(0);
     const [slotTime, setSlotTime] = useState('');
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState(0);
+    const [reviewCount, setReviewCount] = useState(0);
 
     const fetchDocInfo = async () => {
         const docInfo = doctors.find((doc) => doc._id === docId);
@@ -59,7 +63,7 @@ const Appointment = () => {
                 let year = currentDate.getFullYear();
                 const slotDate = `${day}_${month}_${year}`;
 
-                const isSlotAvailable = docInfo.slots_booked && docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(formattedTime) ? false : true;
+                const isSlotAvailable = docInfo?.slots_booked && docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(formattedTime) ? false : true;
 
                 if (isSlotAvailable) {
                     timeSlots.push({
@@ -109,9 +113,23 @@ const Appointment = () => {
         }
     };
 
+    const fetchReviews = async () => {
+        try {
+            const { data } = await axios.post(backendUrl + '/api/review/get-doctor-reviews', { docId });
+            if (data.success) {
+                setReviews(data.reviews);
+                setAverageRating(data.averageRating);
+                setReviewCount(data.reviewCount);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     useEffect(() => {
         if (doctors.length > 0) {
             fetchDocInfo();
+            fetchReviews();
         }
     }, [doctors, docId]);
 
@@ -129,7 +147,7 @@ const Appointment = () => {
             <div className='flex flex-col sm:flex-row gap-4'>
                 <div>
                    <div className='bg-primary w-full sm:max-w-72 h-72 rounded-lg flex flex-col items-center justify-center text-white font-bold text-6xl shadow-md overflow-hidden'>
-                       {docInfo.image ? <img className='w-full h-full object-cover' src={docInfo.image} alt={docInfo.name} /> : docInfo.name.charAt(0)}
+                       {docInfo.image ? <img className='w-full h-full object-cover' src={docInfo.image} alt={docInfo.name} /> : docInfo?.name?.charAt(0)}
                    </div>
                 </div>
 
@@ -142,6 +160,11 @@ const Appointment = () => {
                     <div className='flex items-center gap-2 text-sm mt-1 text-gray-600'>
                         <p>{docInfo.degree} - {docInfo.speciality}</p>
                         <button className='py-0.5 px-2 border text-xs rounded-full'>{docInfo.experience}</button>
+                    </div>
+
+                    <div className='mt-3 flex items-center gap-2 text-sm text-gray-500 font-medium'>
+                        <span className='font-bold text-gray-700'>Email:</span>
+                        <a href={`mailto:${docInfo.email}`} className='text-primary hover:underline'>{docInfo.email}</a>
                     </div>
 
                     {/* Doc About */}
@@ -188,6 +211,11 @@ const Appointment = () => {
                 </div>
 
                 <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6 hover:scale-105 transition-all duration-300'>Book an appointment</button>
+            </div>
+
+            {/* ------- Reviews Section ------- */}
+            <div className='mt-32 pb-20'>
+                <ReviewList reviews={reviews} averageRating={averageRating} reviewCount={reviewCount} />
             </div>
         </div>
     );

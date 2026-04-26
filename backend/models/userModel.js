@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, default: "Not Selected" },
     dob: { type: String, default: "Not Selected" },
     phone: { type: String, default: "0000000000" },
-    role: { type: String, enum: ['patient', 'admin'], default: 'patient' }
+    role: { type: String, enum: ['patient', 'admin'], default: 'patient' },
+    medicalHistory: { type: Array, default: [] }
 }, { timestamps: true });
 
 const userModel = mongoose.models.user || mongoose.model('user', userSchema);

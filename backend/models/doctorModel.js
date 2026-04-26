@@ -13,6 +13,9 @@ const doctorSchema = new mongoose.Schema({
     fees: { type: Number, required: true },
     address: { type: Object, default: { line1: '', line2: '' } },
     date: { type: Number, required: true },
+    isVerified: { type: Boolean, default: false },
+    registrationNumber: { type: String, default: "" },
+    profileCompletion: { type: Number, default: 0 },
     slots_booked: { type: Object, default: {} }
 }, { timestamps: true });
 

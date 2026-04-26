@@ -15,6 +15,8 @@ import info_icon from './info_icon.svg'
 import upload_icon from './upload_icon.png'
 import stripe_logo from './stripe_logo.png'
 import razorpay_logo from './razorpay_logo.png'
+import dashboard_preview from './dashboard_preview.png'
+import hospital_logos from './hospital_logos.png'
 import doc1 from './doc1.png'
 import doc2 from './doc2.png'
 import doc3 from './doc3.png'
@@ -48,6 +50,8 @@ export const assets = {
     info_icon,
     profile_pic,
     arrow_icon,
+    dashboard_preview,
+    hospital_logos,
     contact_image,
     about_image,
     menu_icon,
@@ -55,7 +59,13 @@ export const assets = {
     dropdown_icon,
     upload_icon,
     stripe_logo,
-    razorpay_logo
+    razorpay_logo,
+    Dermatologist,
+    Gastroenterologist,
+    General_physician,
+    Gynecologist,
+    Neurologist,
+    Pediatricians
 }
 
 export const specialityData = [

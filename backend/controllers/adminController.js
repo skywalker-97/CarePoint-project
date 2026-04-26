@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import doctorModel from '../models/doctorModel.js';
 import appointmentModel from '../models/appointmentModel.js';
 import userModel from '../models/userModel.js';
+import createNotification from '../utils/notify.js';
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -121,4 +122,82 @@ const appointmentCancelAdmin = async (req, res) => {
     }
 }
 
-export { loginAdmin, addDoctor, allDoctors, appointmentsAdmin, appointmentCancelAdmin };
+// API to change doctor verification status (Approval Queue)
+const changeVerification = async (req, res) => {
+    try {
+        const { docId } = req.body;
+        const doctor = await doctorModel.findById(docId);
+        
+        // Toggle verification
+        const newStatus = !doctor.isVerified;
+        await doctorModel.findByIdAndUpdate(docId, { isVerified: newStatus });
+        
+        // Notify doctor of approval
+        if (newStatus) {
+            await createNotification(docId, "Congratulations! Your profile has been verified by the CarePoint medical board. You are now live.", "approval");
+        }
+
+        res.json({ success: true, message: newStatus ? 'Doctor Verified' : 'Verification Revoked' });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+// API to get dashboard data for admin panel
+const adminDashboard = async (req, res) => {
+    try {
+        const doctors = await doctorModel.find({});
+        const users = await userModel.find({});
+        const appointments = await appointmentModel.find({});
+
+        // Calculate specialty distribution
+        let specialtyCounts = {};
+        appointments.forEach(app => {
+            const spec = app.docData.speciality;
+            specialtyCounts[spec] = (specialtyCounts[spec] || 0) + 1;
+        });
+
+        const specialtyData = Object.keys(specialtyCounts).map(spec => ({
+            name: spec,
+            value: specialtyCounts[spec]
+        }));
+
+        const totalRevenue = appointments.reduce((acc, curr) => acc + (curr.isCompleted || curr.payment ? curr.amount : 0), 0);
+        const platformCommission = appointments.reduce((acc, curr) => acc + (curr.isCompleted || curr.payment ? (curr.commission || curr.amount * 0.1) : 0), 0);
+
+        const dashData = {
+            doctors: doctors.filter(d => d.isVerified).length,
+            appointments: appointments.length,
+            patients: users.length,
+            latestAppointments: appointments.reverse().slice(0, 6),
+            totalRevenue,
+            platformCommission,
+            doctorPayouts: totalRevenue - platformCommission,
+            approvalQueue: doctors.filter(d => !d.isVerified),
+            specialtyData
+        };
+
+        res.json({ success: true, dashData });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+// API to change doctor availability status
+const changeAvailability = async (req, res) => {
+    try {
+        const { docId } = req.body;
+        const doctor = await doctorModel.findById(docId);
+        const newStatus = !doctor.available;
+        await doctorModel.findByIdAndUpdate(docId, { available: newStatus });
+        res.json({ success: true, message: newStatus ? 'Doctor is now Available' : 'Doctor is now Private' });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+export { loginAdmin, addDoctor, allDoctors, appointmentsAdmin, appointmentCancelAdmin, adminDashboard, changeVerification, changeAvailability };

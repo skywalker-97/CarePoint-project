@@ -30,6 +30,8 @@ import AddDoctor from './pages/AddDoctor';
 import DoctorProfile from './pages/DoctorProfile';
 import DoctorDashboard from './pages/DoctorDashboard';
 import DoctorAppointments from './pages/DoctorAppointments';
+import AdminDashboard from './pages/AdminDashboard';
+import DoctorsList from './pages/DoctorsList';
 
 const App = () => {
 
@@ -38,39 +40,63 @@ const App = () => {
 
   if (aToken || dToken) {
      return (
-        <div className='bg-[#F8F9FD]'>
-          <ToastContainer />
-          <div className='flex items-center justify-between px-4 sm:px-10 py-3 border-b bg-white'>
-            <div className='flex items-center gap-2 text-primary font-bold text-xl'>
-               <img className='w-44 cursor-pointer' src={adminAssets.admin_logo} alt="Logo" />
-               <span className='text-xs sm:text-sm text-gray-500 border border-gray-500 rounded-full px-2.5 py-0.5 ml-2'>{aToken ? 'Admin' : 'Doctor'}</span>
+        <div className='min-h-screen bg-[#f8f9ff]'>
+          <ToastContainer position="top-right" autoClose={3000} />
+          
+          {/* --- Premium Admin/Doctor Top Bar --- */}
+          <nav className='sticky top-0 z-[1000] flex items-center justify-between px-6 sm:px-12 py-4 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm'>
+            <div className='flex items-center gap-4'>
+              <div className='group cursor-pointer flex items-center gap-2' onClick={() => window.location.href = '/'}>
+                <img className='w-36 md:w-44 transition-transform group-hover:scale-105' src={adminAssets.admin_logo} alt="Logo" />
+                <div className='h-8 w-[1px] bg-gray-200 mx-2 hidden sm:block' />
+                <span className='hidden sm:inline-flex items-center px-3 py-1 bg-blue-50 text-primary text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-100'>
+                  {aToken ? 'Admin Control' : 'Doctor Portal'}
+                </span>
+              </div>
             </div>
-            <button onClick={() => { 
-                aToken ? localStorage.removeItem('aToken') : localStorage.removeItem('dToken'); 
-                window.location.href='/' 
-            }} className='bg-primary text-white text-sm px-10 py-2 rounded-full'>Logout</button>
-          </div>
+
+            <div className='flex items-center gap-6'>
+              <div className='hidden md:flex flex-col items-end'>
+                <p className='text-xs font-black text-gray-400 uppercase tracking-tighter'>Logged in as</p>
+                <p className='text-sm font-bold text-gray-700'>{aToken ? 'Administrator' : 'Medical Professional'}</p>
+              </div>
+              <button 
+                onClick={() => { 
+                    localStorage.removeItem('aToken'); 
+                    localStorage.removeItem('dToken'); 
+                    window.location.href='/';
+                }} 
+                className='flex items-center gap-2 bg-gray-900 text-white text-xs font-black uppercase tracking-widest px-8 py-3 rounded-2xl hover:bg-primary shadow-lg shadow-gray-200 hover:shadow-blue-500/20 active:scale-95 transition-all'
+              >
+                Logout
+              </button>
+            </div>
+          </nav>
+
           <div className='flex items-start'>
             {aToken ? <AdminSidebar /> : <DoctorSidebar />}
-            <Routes>
-               {/* Admin Routes */}
-               <Route path='/' element={aToken ? <AdminAppointments /> : <DoctorDashboard />} />
-               <Route path='/admin-dashboard' element={<AdminAppointments />} />
-               <Route path='/all-appointments' element={<AdminAppointments />} />
-               <Route path='/add-doctor' element={<AddDoctor />} />
+            <main className='flex-1 min-h-[calc(100vh-80px)] overflow-y-auto'>
+              <Routes>
+                 {/* Admin Routes */}
+                 <Route path='/' element={aToken ? <AdminDashboard /> : <DoctorDashboard />} />
+                 <Route path='/admin-dashboard' element={<AdminDashboard />} />
+                 <Route path='/all-appointments' element={<AdminAppointments />} />
+                 <Route path='/add-doctor' element={<AddDoctor />} />
+                 <Route path='/doctor-list' element={<DoctorsList />} />
 
-               {/* Doctor Routes */}
-               <Route path='/doctor-dashboard' element={<DoctorDashboard />} />
-               <Route path='/doctor-appointments' element={<DoctorAppointments />} />
-               <Route path='/doctor-profile' element={<DoctorProfile />} />
-            </Routes>
+                 {/* Doctor Routes */}
+                 <Route path='/doctor-dashboard' element={<DoctorDashboard />} />
+                 <Route path='/doctor-appointments' element={<DoctorAppointments />} />
+                 <Route path='/doctor-profile' element={<DoctorProfile />} />
+              </Routes>
+            </main>
           </div>
         </div>
      );
   }
 
   return (
-    <div className='mx-4 sm:mx-[10%]'>
+    <div className='mx-4 sm:mx-[10%] pt-20 md:pt-28 min-h-screen'>
       <ToastContainer />
       <Navbar />
       <Routes>
