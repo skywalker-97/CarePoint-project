@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import HealthSummaryCard from '../components/dashboard/HealthSummaryCard';
 import MedicalRecordsTimeline from '../components/dashboard/MedicalRecordsTimeline';
 import PaymentModal from '../components/PaymentModal';
+import { getDoctorImage } from '../utils/imageHelper';
 
 const MyAppointments = () => {
     const { backendUrl, token, getDoctorsData, userData, currencySymbol, doctors } = useContext(AppContext);
@@ -130,6 +131,7 @@ const MyAppointments = () => {
                 toast.success("Payment Verified!");
                 setPaymentConfig(null);
                 getUserAppointments();
+                if (getDoctorsData) getDoctorsData();
             } else {
                 toast.error(data.message);
             }
@@ -162,9 +164,9 @@ const MyAppointments = () => {
     }, [token]);
 
     const stats = {
-        totalAppointments: appointments.length,
-        activePrescriptions: records.length,
-        completedVisits: appointments.filter(a => a.isCompleted).length,
+        totalAppointments: (appointments || []).length,
+        activePrescriptions: (records || []).length,
+        completedVisits: (appointments || []).filter(a => a.isCompleted).length,
         healthScore: userData?.profileCompleted || 85
     };
 
@@ -176,7 +178,7 @@ const MyAppointments = () => {
                     <div className='flex items-center gap-3 text-primary font-black text-[10px] uppercase tracking-[0.4em]'>
                         <Activity size={14} /> Patient Health Dashboard
                     </div>
-                    <h1 className='text-4xl md:text-5xl font-black text-slate-900 tracking-tight'>Welcome, {userData?.name.split(' ')[0]}</h1>
+                    <h1 className='text-4xl md:text-5xl font-black text-slate-900 tracking-tight'>Welcome, {(userData?.name || "Patient").split(' ')[0]}</h1>
                     <p className='text-slate-400 font-medium max-w-md leading-relaxed'>
                         Track your recovery, manage appointments, and access your digital medical records.
                     </p>
@@ -249,7 +251,7 @@ const MyAppointments = () => {
                         exit={{ opacity: 0, y: -10 }}
                         className='space-y-6'
                     >
-                        {appointments.map((item, index) => (
+                        {(appointments || []).map((item, index) => (
                             <motion.div 
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
@@ -263,16 +265,8 @@ const MyAppointments = () => {
                                     <div className='w-full sm:w-48 h-48 bg-slate-50 rounded-[40px] overflow-hidden shadow-inner flex-shrink-0 relative'>
                                         <img 
                                             className='w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700' 
-                                            src={doctors.find(d => d._id === item.docId)?.image || doctors.find(d => d.name === item.docData.name)?.image || item.docData.image} 
+                                            src={getDoctorImage(doctors.find(d => d._id === item.docId) || item.docData)} 
                                             alt={item.docData.name} 
-                                            onError={(e) => {
-                                                const fallback = doctors.find(d => d.name === item.docData.name)?.image;
-                                                if (fallback && e.currentTarget.src !== fallback) {
-                                                    e.currentTarget.src = fallback;
-                                                } else {
-                                                    e.currentTarget.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-                                                }
-                                            }}
                                         />
                                         <div className='absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity' />
                                     </div>
@@ -366,7 +360,7 @@ const MyAppointments = () => {
                                 </div>
                             </motion.div>
                         ))}
-                        {appointments.length === 0 && (
+                        {(appointments || []).length === 0 && (
                             <div className="py-20 text-center">
                                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No upcoming visits</p>
                             </div>

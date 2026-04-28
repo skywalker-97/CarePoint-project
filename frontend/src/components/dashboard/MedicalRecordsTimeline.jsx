@@ -48,7 +48,17 @@ const MedicalRecordsTimeline = ({ records, onDownload }) => {
                                     <h4 className="text-2xl font-[900] text-slate-900 tracking-tight">
                                         Diagnosis: {record.diagnosis}
                                     </h4>
-                                    <div className="flex flex-wrap gap-6 text-slate-500">
+
+                                    {record.consultationSummary && (
+                                        <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50">
+                                            <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-2">Specialist's Advice</p>
+                                            <p className="text-slate-600 text-sm font-medium leading-relaxed italic">
+                                                "{record.consultationSummary}"
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-wrap gap-6 text-slate-500 pt-2">
                                         <div className="flex items-center gap-2">
                                             <User size={14} className="text-slate-300" />
                                             <p className="text-xs font-bold uppercase tracking-wider">Dr. {record.docId?.name}</p>

@@ -4,8 +4,9 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { DoctorContext } from '../context/DoctorContext';
 import { ChevronDown, User, LayoutDashboard, LogOut, Settings, Menu, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import NotificationBell from './NotificationBell';
+import { getDoctorImage } from '../utils/imageHelper';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -43,9 +44,34 @@ const Navbar = () => {
             isScrolled || showMenu ? 'bg-white/80 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.03)] border-b border-slate-100/50' : 'bg-transparent'
         }`}>
             <div className="max-w-7xl mx-auto flex items-center justify-between">
-                {/* Logo */}
-                <div onClick={() => {navigate('/'); scrollTo(0,0)}} className="cursor-pointer flex items-center gap-2 group">
-                    <img className="w-36 sm:w-44 transition-transform group-hover:scale-[1.02]" src={assets.logo} alt="CarePoint" />
+                {/* Premium Logo */}
+                <div onClick={() => {navigate('/'); scrollTo(0,0)}} className="cursor-pointer flex items-center gap-3 group select-none">
+                    {/* Icon */}
+                    <div className="relative w-9 h-9 flex-shrink-0">
+                        <div className="absolute inset-0 rounded-xl group-hover:scale-110 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-teal-400/30"
+                            style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0891B2 100%)' }}
+                        />
+                        {/* Medical Cross */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="relative w-5 h-5">
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[5px] h-full bg-white rounded-full"/>
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[5px] bg-white rounded-full"/>
+                            </div>
+                        </div>
+                        {/* Glow ring on hover */}
+                        <div className="absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"
+                            style={{ background: 'radial-gradient(circle, #0D9488, transparent 70%)' }}
+                        />
+                    </div>
+                    {/* Brand Text */}
+                    <div className="flex flex-col leading-none">
+                        <span className="text-[8px] font-black uppercase tracking-[0.3em] transition-colors duration-300"
+                            style={{ color: '#0D9488' }}
+                        >Healthcare</span>
+                        <span className="font-black tracking-tight transition-colors duration-300"
+                            style={{ fontSize: '18px', background: 'linear-gradient(90deg, #0D9488, #0891B2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                        >CarePoint</span>
+                    </div>
                 </div>
 
                 {/* Desktop Menu */}
@@ -81,7 +107,7 @@ const Navbar = () => {
                                     <div className="bg-white/95 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-slate-100 p-2 min-w-[240px]">
                                         <div className="px-5 py-4 border-b border-slate-50 mb-1">
                                             <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Patient Portal</p>
-                                            <p className="text-sm font-bold text-slate-900 truncate">{userData.name}</p>
+                                        <p className="text-sm font-bold text-slate-900 truncate">{userData?.name || 'User'}</p>
                                         </div>
                                         <div className="p-1 space-y-1">
                                             <button onClick={() => navigate('/my-profile')} className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-primary rounded-2xl transition-all active:scale-95">
@@ -105,14 +131,14 @@ const Navbar = () => {
                             <div className="relative group flex items-center gap-3 cursor-pointer bg-slate-50/80 hover:bg-white p-1 pr-4 rounded-full border border-slate-100 transition-all hover:shadow-sm">
                                 <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-sm shadow-md ring-2 ring-white overflow-hidden">
                                     {profileData?.image ? (
-                                        <img src={profileData.image} alt="" className="w-full h-full object-cover" />
+                                        <img src={getDoctorImage(profileData)} alt={profileData?.name || "Doctor"} className="w-full h-full object-cover" />
                                     ) : (
                                         profileData?.name ? profileData.name.charAt(0) : 'D'
                                     )}
                                 </div>
                                 <div className="hidden sm:block">
                                     <p className="text-[13px] font-bold text-slate-800 leading-tight">
-                                        {profileData?.name ? (profileData.name.startsWith('Dr.') ? profileData.name.split(' ')[1] : profileData.name.split(' ')[0]) : 'Doc'}
+                                        {profileData?.name ? ((profileData.name.startsWith('Dr.') ? profileData.name.split(' ')[1] : profileData.name.split(' ')[0]) || profileData.name) : 'Doc'}
                                     </p>
                                 </div>
                                 <ChevronDown size={14} className="text-slate-400 group-hover:rotate-180 transition-transform" />

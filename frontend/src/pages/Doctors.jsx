@@ -15,30 +15,30 @@ const Doctors = () => {
     const [availableOnly, setAvailableOnly] = useState(false);
 
     const applyFilter = () => {
-        let filtered = [...doctors];
+        let filtered = [...(doctors || [])];
 
         // 1. Speciality Filter
-        if (speciality) {
+        if (speciality && filtered.length > 0) {
             filtered = filtered.filter(doc => doc.speciality === speciality);
         }
 
         // 2. Search Query
-        if (searchQuery) {
-            filtered = filtered.filter(doc => doc.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (searchQuery && filtered.length > 0) {
+            filtered = filtered.filter(doc => (doc.name || "").toLowerCase().includes(searchQuery.toLowerCase()));
         }
 
         // 3. Availability
-        if (availableOnly) {
+        if (availableOnly && filtered.length > 0) {
             filtered = filtered.filter(doc => doc.available);
         }
 
         // 4. Sorting
-        if (sortBy === 'priceLow') {
-            filtered.sort((a, b) => a.fees - b.fees);
-        } else if (sortBy === 'priceHigh') {
-            filtered.sort((a, b) => b.fees - a.fees);
-        } else if (sortBy === 'experience') {
-            filtered.sort((a, b) => parseInt(b.experience) - parseInt(a.experience));
+        if (sortBy === 'priceLow' && filtered.length > 0) {
+            filtered.sort((a, b) => (a.fees || 0) - (b.fees || 0));
+        } else if (sortBy === 'priceHigh' && filtered.length > 0) {
+            filtered.sort((a, b) => (b.fees || 0) - (a.fees || 0));
+        } else if (sortBy === 'experience' && filtered.length > 0) {
+            filtered.sort((a, b) => parseInt(b.experience || 0) - parseInt(a.experience || 0));
         }
 
         setFilterDoc(filtered);

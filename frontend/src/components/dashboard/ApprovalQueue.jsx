@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, FileText, BadgeCheck } from 'lucide-react';
+import { CheckCircle, FileText, BadgeCheck } from 'lucide-react';
+import { getDoctorImage } from '../../utils/imageHelper';
 
-const ApprovalQueue = ({ doctors, onApprove, onReject }) => {
+const ApprovalQueue = ({ doctors, onApprove }) => {
     if (!doctors || doctors.length === 0) {
         return (
             <div className="bg-slate-50 rounded-[40px] p-12 text-center border border-dashed border-slate-200">
@@ -14,17 +14,14 @@ const ApprovalQueue = ({ doctors, onApprove, onReject }) => {
 
     return (
         <div className="space-y-4">
-            {doctors.map((doc, index) => (
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+            {doctors.map((doc) => (
+                <div 
                     key={doc._id} 
                     className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-premium flex items-center justify-between group"
                 >
                     <div className="flex items-center gap-6">
                         <div className="relative">
-                            <img src={doc.image} className="w-14 h-14 rounded-2xl object-cover shadow-sm" alt="" />
+                            <img src={getDoctorImage(doc)} className="w-14 h-14 rounded-2xl object-cover shadow-sm" alt={doc.name || "Doctor"} />
                             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-400 rounded-lg flex items-center justify-center border-2 border-white">
                                 <FileText size={10} className="text-white" />
                             </div>
@@ -43,7 +40,7 @@ const ApprovalQueue = ({ doctors, onApprove, onReject }) => {
                             <CheckCircle size={20} />
                         </button>
                     </div>
-                </motion.div>
+                </div>
             ))}
         </div>
     );

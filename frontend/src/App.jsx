@@ -96,22 +96,24 @@ const App = () => {
   }
 
   return (
-    <div className='mx-4 sm:mx-[10%] pt-20 md:pt-28 min-h-screen'>
+    <div className='pt-16 md:pt-20 min-h-screen'>
       <ToastContainer />
       <Navbar />
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/doctors' element={<Doctors />} />
-        <Route path='/doctors/:speciality' element={<Doctors />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/admin-login' element={<AdminLogin />} />
-        <Route path='/doctor-profile' element={<DoctorProfile />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/contact' element={<Contact />} />
-        <Route path='/my-profile' element={<MyProfile />} />
-        <Route path='/my-appointments' element={<MyAppointments />} />
-        <Route path='/appointment/:docId' element={<Appointment />} />
-      </Routes>
+      <div className='w-full'>
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/doctors' element={<Doctors />} />
+          <Route path='/doctors/:speciality' element={<Doctors />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/admin-login' element={<AdminLogin />} />
+          <Route path='/doctor-profile' element={<DoctorProfile />} />
+          <Route path='/about' element={<About />} />
+          <Route path='/contact' element={<Contact />} />
+          <Route path='/my-profile' element={<MyProfile />} />
+          <Route path='/my-appointments' element={<MyAppointments />} />
+          <Route path='/appointment/:docId' element={<Appointment />} />
+        </Routes>
+      </div>
       <Footer />
     </div>
   )

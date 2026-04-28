@@ -13,7 +13,7 @@ const DoctorCard = ({ doc }) => {
             viewport={{ once: true }}
             whileHover={{ y: -10 }}
             onClick={() => { navigate(`/appointment/${doc._id}`); window.scrollTo(0, 0); }} 
-            className="group relative bg-white rounded-[40px] border border-slate-100 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 flex flex-col"
+            className="group relative bg-white rounded-[40px] border border-slate-100 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 flex flex-col"
         >
             {/* Image Container with Glass Overlay */}
             <div className="relative h-72 overflow-hidden bg-slate-50">
@@ -32,7 +32,7 @@ const DoctorCard = ({ doc }) => {
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-primary/10 font-black text-8xl uppercase tracking-tighter">
-                        {doc.name.charAt(0)}
+                        {(doc.name || 'D').charAt(0)}
                     </div>
                 )}
                 
@@ -73,7 +73,7 @@ const DoctorCard = ({ doc }) => {
                 <div className='space-y-1'>
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">{doc.speciality}</p>
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-primary transition-colors">
-                        {doc.name.startsWith('Dr.') ? doc.name : `Dr. ${doc.name}`}
+                        {(doc.name || 'Unknown').startsWith('Dr.') ? doc.name : `Dr. ${doc.name || 'Unknown'}`}
                     </h3>
                     <p className="text-[11px] font-bold text-slate-400 pt-1 flex items-center gap-2 truncate">
                         {doc.email}
@@ -85,7 +85,7 @@ const DoctorCard = ({ doc }) => {
                         <div className='w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center text-primary shadow-inner'>
                             <Clock size={12} />
                         </div>
-                        <span>{doc.experience} Experience</span>
+                        <span>{doc.experience || 'N/A'} Experience</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className='w-6 h-6 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 shadow-inner'>
@@ -100,7 +100,7 @@ const DoctorCard = ({ doc }) => {
                         <MapPin size={14} className="text-slate-300" />
                         <span className="text-[11px] font-bold line-clamp-1">Downtown Medical Square</span>
                     </div>
-                    <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white group-hover:shadow-xl group-hover:shadow-blue-500/20 transition-all">
+                    <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white group-hover:shadow-xl group-hover:shadow-teal-500/20 transition-all">
                         <ChevronRight size={18} className='group-hover:translate-x-0.5 transition-transform' />
                     </div>
                 </div>

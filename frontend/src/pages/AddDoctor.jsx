@@ -7,7 +7,7 @@ import { doctors as initialDoctors } from '../assets/assets_frontend/assets';
 import { UserPlus, Camera } from 'lucide-react';
 
 const AddDoctor = () => {
-    const { backendUrl, aToken } = useContext(AdminContext);
+    const { backendUrl, aToken, getAllDoctors, getDashData } = useContext(AdminContext);
 
     const [docImgKey, setDocImgKey] = useState('doc1'); // Default to doc1
 
@@ -43,6 +43,8 @@ const AddDoctor = () => {
 
             if (data.success) {
                 toast.success(data.message);
+                if (getAllDoctors) getAllDoctors();
+                if (getDashData) getDashData();
                 setName('');
                 setEmail('');
                 setPassword('');
@@ -80,7 +82,7 @@ const AddDoctor = () => {
                         <p className='font-bold text-gray-700'>Select Profile Avatar</p>
                     </div>
                     <div className='flex flex-wrap gap-4 p-5 border-2 border-dashed border-gray-100 rounded-3xl bg-gray-50/50'>
-                        {initialDoctors.map((doc, index) => (
+                        {(initialDoctors || []).map((doc, index) => (
                             <img 
                                 key={index}
                                 onClick={() => setDocImgKey(doc._id)}

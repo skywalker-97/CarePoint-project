@@ -18,7 +18,7 @@ const AdminDashboard = () => {
         }
     }, [aToken]);
 
-    return dashData && (
+    return (
         <div className="m-5 font-inter">
             {/* Header section */}
             <div className="flex justify-between items-end mb-10">
@@ -38,7 +38,7 @@ const AdminDashboard = () => {
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10'>
                 <StatCard 
                     title="Platform Revenue" 
-                    value={`${currency}${dashData.totalRevenue}`} 
+                    value={`${currency}${dashData?.totalRevenue || 0}`} 
                     icon={DollarSign} 
                     trend="up" 
                     trendValue="18.2" 
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
                 />
                 <StatCard 
                     title="Active Patients" 
-                    value={dashData.patients} 
+                    value={dashData?.patients || 0} 
                     icon={Users} 
                     trend="up" 
                     trendValue="5.4" 
@@ -54,13 +54,13 @@ const AdminDashboard = () => {
                 />
                 <StatCard 
                     title="Total Network" 
-                    value={dashData.doctors + (dashData.approvalQueue?.length || 0)} 
+                    value={(dashData?.doctors || 0) + (dashData?.approvalQueue?.length || 0)} 
                     icon={UserSquare} 
                     color="bg-teal-50 text-teal-600"
                 />
                 <StatCard 
                     title="Net Commission" 
-                    value={`${currency}${dashData.platformCommission}`} 
+                    value={`${currency}${dashData?.platformCommission || 0}`} 
                     icon={TrendingUp} 
                     trend="up" 
                     trendValue="12.5" 
@@ -72,8 +72,8 @@ const AdminDashboard = () => {
                 {/* Analytics Left Column */}
                 <div className="lg:col-span-2 space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <SpecialtyDistribution data={dashData.specialtyData} />
-                        <RevenueDistribution data={dashData} />
+                        <SpecialtyDistribution data={dashData?.specialtyData || []} />
+                        <RevenueDistribution data={dashData || {}} />
                     </div>
                     
                     {/* Latest Bookings Table */}
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className='divide-y divide-slate-50'>
-                            {dashData.latestAppointments.map((item, index) => (
+                            {(dashData?.latestAppointments || []).map((item, index) => (
                                 <div className='flex flex-wrap items-center px-10 py-6 gap-6 hover:bg-slate-50/80 transition-all' key={index}>
                                     <img className='rounded-2xl w-14 h-14 object-cover border-4 border-white shadow-sm' src={item.userData.image} alt="" />
                                     <div className='flex-1 min-w-[200px]'>

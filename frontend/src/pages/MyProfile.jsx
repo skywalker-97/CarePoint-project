@@ -3,7 +3,8 @@ import { AppContext } from '../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Mail, MapPin, Calendar, Camera, Edit2, Check, X, Shield, Globe, Award } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar, Camera, Edit2, Check, X, Shield, Globe, Award, Sparkles, Loader2, Activity, Zap } from 'lucide-react';
+import { getUserImage } from '../utils/imageHelper';
 
 const MyProfile = () => {
     const { userData, setUserData, token, backendUrl, loadUserProfileData } = useContext(AppContext);
@@ -18,10 +19,52 @@ const MyProfile = () => {
         medicalHistory: []
     });
 
+    const [healthData, setHealthData] = useState(null);
+    const [loadingHealth, setLoadingHealth] = useState(false);
+
     // Populate formData when userData changes
     React.useEffect(() => {
-        if (userData) setFormData(userData);
+        if (userData) {
+            setFormData(userData);
+            fetchHealthScore();
+        }
     }, [userData]);
+
+    const fetchHealthScore = async () => {
+        // Create a unique hash of the user's current medical state
+        const cacheKey = `health_score_${userData._id}`;
+        const currentProfileHash = JSON.stringify({ age: userData.dob, gender: userData.gender, history: userData.medicalHistory });
+        
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+            const parsed = JSON.parse(cachedData);
+            if (parsed.profileHash === currentProfileHash) {
+                setHealthData(parsed.healthData);
+                return; // Return early, don't recalculate!
+            }
+        }
+
+        setLoadingHealth(true);
+        try {
+            const { data } = await axios.post(backendUrl + '/api/ai/health-score', { 
+                userData, 
+                history: userData.medicalHistory 
+            }, { headers: { token } });
+            
+            if (data.success) {
+                setHealthData(data.healthData);
+                // Save to cache
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    profileHash: currentProfileHash,
+                    healthData: data.healthData
+                }));
+            }
+        } catch (e) {
+            console.log("Health Score Error:", e);
+        } finally {
+            setLoadingHealth(false);
+        }
+    }
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -98,7 +141,7 @@ const MyProfile = () => {
                     <div className='relative group shrink-0 self-start md:self-auto'>
                         <div className='w-32 h-32 md:w-40 md:h-40 rounded-[32px] md:rounded-[40px] bg-white p-2 shadow-premium'>
                             <div className='w-full h-full rounded-[24px] md:rounded-[32px] bg-slate-100 flex items-center justify-center text-4xl md:text-5xl font-black text-slate-300 overflow-hidden border-4 border-white'>
-                                {formData.image ? <img src={formData.image} alt="" className="w-full h-full object-cover" /> : formData.name.charAt(0)}
+                                {formData.image ? <img src={getUserImage(formData)} alt="" className="w-full h-full object-cover" /> : (formData.name || "U").charAt(0)}
                             </div>
                         </div>
                         <input type="file" id="image" hidden accept="image/*" onChange={handleImageUpload} />
@@ -109,7 +152,7 @@ const MyProfile = () => {
 
                     <div className='flex-1 pb-2 flex flex-col md:flex-row md:items-center justify-between gap-6'>
                         <div className='space-y-1'>
-                            <p className='text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1'>Patient ID: #{userData._id?.slice(-6).toUpperCase()}</p>
+                            <p className='text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1'>Patient ID: #{userData?._id?.slice(-6).toUpperCase() || 'NEW'}</p>
                             <h1 className='text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none'>
                                 {isEdit 
                                     ? <input className='bg-white/40 backdrop-blur-md border border-slate-200 px-4 py-1 rounded-2xl outline-none focus:border-primary transition-all w-full md:w-96' type="text" onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} value={formData.name} />
@@ -203,7 +246,7 @@ const MyProfile = () => {
                                             <input className='bg-white/60 border border-slate-100 rounded-2xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-primary w-full' type="text" onChange={(e) => setFormData(prev => ({ ...prev, address: { ...prev.address, line2: e.target.value } }))} value={formData.address.line2} placeholder="Line 2" />
                                         </>
                                     ) : (
-                                        <p className='font-black text-slate-700 leading-relaxed'>{formData.address.line1}, {formData.address.line2}</p>
+                                        <p className='font-black text-slate-700 leading-relaxed'>{formData.address?.line1 || 'N/A'}, {formData.address?.line2 || ''}</p>
                                     )}
                                 </div>
                             </div>
@@ -234,14 +277,14 @@ const MyProfile = () => {
                                 )}
                             </div>
                             <div className='flex flex-wrap gap-3'>
-                                {formData.medicalHistory && formData.medicalHistory.length > 0 ? (
+                                {Array.isArray(formData.medicalHistory) && formData.medicalHistory.length > 0 ? (
                                     formData.medicalHistory.map((item, index) => (
                                         <div key={index} className='group flex items-center gap-2 px-5 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-primary/20 hover:shadow-md transition-all'>
                                             <Activity size={14} className="text-primary" />
                                             <span className='text-xs font-black text-slate-700'>{item}</span>
                                             {isEdit && (
                                                 <button 
-                                                    onClick={() => setFormData(prev => ({ ...prev, medicalHistory: prev.medicalHistory.filter((_, i) => i !== index) }))}
+                                                    onClick={() => setFormData(prev => ({ ...prev, medicalHistory: (prev.medicalHistory || []).filter((_, i) => i !== index) }))}
                                                     className='text-slate-300 hover:text-red-500 transition-colors'
                                                 >
                                                     <X size={14} />
@@ -267,6 +310,65 @@ const MyProfile = () => {
                     transition={{ delay: 0.2 }}
                     className='space-y-8'
                 >
+                    {/* AI Health Score Card */}
+                    <div className='bg-slate-900 rounded-[48px] p-10 text-white space-y-8 shadow-2xl relative overflow-hidden group'>
+                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <Sparkles size={80} className="text-primary" />
+                        </div>
+
+                        <div className="flex items-center gap-3 relative z-10">
+                            <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
+                                <Sparkles size={20} className="text-primary" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black tracking-tight">Vital Intelligence</h3>
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Personalized AI Health Index</p>
+                            </div>
+                        </div>
+
+                        {loadingHealth ? (
+                            <div className="flex flex-col items-center justify-center py-10 gap-4">
+                                <Loader2 className="animate-spin text-primary" size={32} />
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Calculating score...</p>
+                            </div>
+                        ) : healthData && (
+                            <div className="space-y-8 relative z-10 text-center">
+                                <div className="relative inline-flex items-center justify-center">
+                                    <svg className="w-32 h-32 transform -rotate-90">
+                                        <circle className="text-white/5" strokeWidth="8" stroke="currentColor" fill="transparent" r="56" cx="64" cy="64" />
+                                        <circle className="text-primary transition-all duration-1000 ease-out" strokeWidth="8" strokeDasharray={351.8} strokeDashoffset={351.8 - (351.8 * healthData.score) / 100} strokeLinecap="round" stroke="currentColor" fill="transparent" r="56" cx="64" cy="64" />
+                                    </svg>
+                                    <div className="absolute flex flex-col">
+                                        <span className="text-4xl font-black">{healthData.score}</span>
+                                        <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Score</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className={`inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                        healthData.category === 'Excellent' ? 'bg-emerald-500/20 text-emerald-400' : 
+                                        healthData.category === 'Good' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'
+                                    }`}>
+                                        {healthData.category} Health
+                                    </div>
+                                    <p className="text-xs text-slate-400 font-medium leading-relaxed px-4">
+                                        {healthData.summary}
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3 text-left pt-4 border-t border-white/5">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI Recommendations</p>
+                                    {(healthData.recommendations || []).map((tip, idx) => (
+                                        <div key={idx} className="flex gap-3 items-start">
+                                            <Zap size={12} className="text-primary mt-0.5 shrink-0" />
+                                            <p className="text-[10px] text-slate-300 font-bold leading-tight">{tip}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div className='bg-white/60 backdrop-blur-xl rounded-[40px] border border-slate-100 p-8 shadow-premium space-y-6'>
                         <div className='flex items-center gap-3'>
                             <Shield className='text-emerald-500' />

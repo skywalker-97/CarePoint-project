@@ -87,10 +87,14 @@ const Login = () => {
     };
 
     useEffect(() => {
-        if (token || dToken) {
+        if (token) {
             navigate('/');
+        } else if (dToken) {
+            navigate('/doctor-dashboard');
+        } else if (localStorage.getItem('aToken')) {
+            navigate('/admin-dashboard');
         }
-    }, [token, dToken]);
+    }, [token, dToken, navigate]);
 
     const stepVariants = {
         hidden: { opacity: 0, x: 20 },

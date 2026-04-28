@@ -8,6 +8,7 @@ import {
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const Chat = ({ roomId, receiverName, onClose, senderId, senderModel }) => {
     const { socket, backendUrl, token } = useContext(AppContext);
@@ -17,6 +18,8 @@ const Chat = ({ roomId, receiverName, onClose, senderId, senderModel }) => {
     const [showTypingIndicator, setShowTypingIndicator] = useState(false);
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
+    const navigate = useNavigate();
+    const [showDoctorCta, setShowDoctorCta] = useState(false);
 
     const fetchMessages = async () => {
         try {
@@ -97,20 +100,43 @@ const Chat = ({ roomId, receiverName, onClose, senderId, senderModel }) => {
             createdAt: new Date().toISOString()
         };
 
+        // Optimistic UI Update: Show message immediately
+        setMessages((prev) => [...prev, messageData]);
+        setMessage('');
+        
+        // Show AI typing indicator if chatting in support room
+        if (roomId === 'carepoint_support') {
+            setShowTypingIndicator(true);
+        }
+
         try {
             const { data } = await axios.post(backendUrl + '/api/chat/send', messageData, { headers: { token } });
             if (data.success) {
                 socket.emit('send_message', messageData);
-                setMessages((prev) => [...prev, messageData]);
-                setMessage('');
+                
+                if (data.aiResponse) {
+                    setMessages((prev) => [...prev, data.aiResponse]);
+                }
+                
+                if (data.severity === 'PRIORITY' || data.severity === 'EMERGENCY') {
+                    setShowDoctorCta(true);
+                } else {
+                    setShowDoctorCta(false);
+                }
+
                 socket.emit('stop_typing', { roomId, senderId });
                 setIsTyping(false);
             } else {
                 toast.error(data.message);
+                // Optionally remove the optimistically added message here if it fails
             }
         } catch (error) {
             console.log(error);
             toast.error(error.message);
+        } finally {
+            if (roomId === 'carepoint_support') {
+                setShowTypingIndicator(false);
+            }
         }
     };
 
@@ -216,6 +242,26 @@ const Chat = ({ roomId, receiverName, onClose, senderId, senderModel }) => {
                         </div>
                     </motion.div>
                 )}
+
+                {/* Emergency / Doctor CTA */}
+                {showDoctorCta && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 mb-2 flex justify-center w-full"
+                    >
+                        <button 
+                            onClick={() => {
+                                onClose();
+                                navigate('/doctors');
+                            }}
+                            className="bg-red-500 hover:bg-red-600 text-white font-black uppercase tracking-widest text-[10px] py-4 px-8 rounded-full shadow-xl shadow-red-500/30 flex items-center gap-2 transition-all active:scale-95"
+                        >
+                            Consult Live Specialist Now
+                        </button>
+                    </motion.div>
+                )}
+
                 <div ref={scrollRef} />
             </div>
 

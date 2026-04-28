@@ -1,8 +1,8 @@
 import React, { createContext, useState, useEffect } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { doctors as initialDoctors } from '../assets/assets_frontend/assets';
 import { io } from "socket.io-client";
+import { enhanceDoctorsWithImages } from '../utils/imageHelper';
 
 export const AppContext = createContext();
 
@@ -20,7 +20,7 @@ const AppContextProvider = (props) => {
         try {
             const { data } = await axios.get(backendUrl + '/api/doctor/list');
             if (data.success) {
-                setDoctors(data.doctors);
+                setDoctors(enhanceDoctorsWithImages(data.doctors));
             } else {
                 toast.error(data.message);
             }
@@ -45,13 +45,6 @@ const AppContextProvider = (props) => {
         }
     }
 
-    // Use initialDoctors from assets as fallback/mock
-    const mockDoctors = initialDoctors;
-    const imageByDocId = mockDoctors.reduce((acc, doc) => {
-        acc[doc._id] = doc.image;
-        return acc;
-    }, {});
-
     useEffect(() => {
         getDoctorsData();
     }, []);
@@ -63,29 +56,6 @@ const AppContextProvider = (props) => {
             setUserData(null);
         }
     }, [token]);
-
-    // Map backend doctors to asset images if name matches and image is missing/invalid
-    const getEnhancedDoctors = () => {
-        const baseDoctors = doctors.length > 0 ? doctors : mockDoctors;
-        return baseDoctors.map(doc => {
-            const assetDoc = mockDoctors.find(m => m.name === doc.name);
-            const fallbackImage = assetDoc?.image || '';
-
-            const imageValue = typeof doc.image === 'string' ? doc.image : '';
-            const imageFromKey = imageByDocId[imageValue] || '';
-            const isLikelyLocalDevPath = imageValue.includes('/src/assets/') || imageValue.includes('\\src\\assets\\') || imageValue.startsWith('file:') || /^[A-Za-z]:\\/.test(imageValue);
-
-            if (!imageValue || isLikelyLocalDevPath) {
-                return { ...doc, image: fallbackImage, fallbackImage };
-            }
-
-            if (imageFromKey) {
-                return { ...doc, image: imageFromKey, fallbackImage };
-            }
-
-            return { ...doc, fallbackImage };
-        });
-    }
 
     const currency = '$';
 
@@ -103,7 +73,7 @@ const AppContextProvider = (props) => {
     }
 
     const value = {
-        doctors: getEnhancedDoctors(), 
+        doctors,
         currency,
         currencySymbol: '$',
         token,

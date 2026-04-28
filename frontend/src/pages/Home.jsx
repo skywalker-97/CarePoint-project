@@ -3,17 +3,23 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets_frontend/assets';
 import SymptomChecker from '../components/SymptomChecker';
+import ReviewModal from '../components/ReviewModal';
+import Chat from '../components/Chat';
+import { toast } from 'react-toastify';
 import { 
     ChevronRight, Heart, Clock, ShieldCheck, Activity, ArrowRight, 
     UserPlus, Star, CheckCircle, Smartphone, Globe, Shield, 
     MessageCircle, HelpCircle, PhoneCall, Zap, Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import HeroBG from '../components/HeroBG';
 
 const Home = () => {
     const navigate = useNavigate();
-    const { doctors, token } = useContext(AppContext);
+    const { doctors, token, userData } = useContext(AppContext);
     const [activeFaq, setActiveFaq] = useState(null);
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const specialities = [
         { name: 'General physician', image: assets.General_physician, desc: 'Primary care and routine checkups' },
@@ -49,11 +55,8 @@ const Home = () => {
         <div className='bg-[#F8FAFC] font-inter overflow-x-hidden'>
             {/* Section 1: Premium Hero Section */}
             <section className='relative min-h-[90vh] flex flex-col lg:flex-row items-center justify-between gap-16 px-6 sm:px-12 lg:px-24 pt-32 pb-20'>
-                {/* Background Blobs */}
-                <div className='absolute top-0 right-0 w-full h-full overflow-hidden pointer-events-none'>
-                    <div className='absolute -top-24 -right-24 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]' />
-                    <div className='absolute top-1/2 -left-24 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px]' />
-                </div>
+                {/* 3D Animated Background */}
+                <HeroBG />
 
                 <div className='flex-1 space-y-12 relative z-10 text-center lg:text-left'>
                     <motion.div 
@@ -78,12 +81,15 @@ const Home = () => {
                     <div className='flex flex-wrap items-center justify-center lg:justify-start gap-6'>
                         <button 
                             onClick={() => navigate('/doctors')}
-                            className='px-10 py-5 bg-[#2563EB] text-white rounded-3xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all'
+                            className='px-10 py-5 bg-primary text-white rounded-3xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-teal-500/25 hover:scale-105 hover:bg-teal-600 active:scale-95 transition-all'
                         >
                             Book Appointment
                         </button>
                         <button 
-                            onClick={() => window.scrollTo({ top: 2200, behavior: 'smooth' })}
+                            onClick={() => {
+                                const element = document.getElementById('ai-symptom-checker');
+                                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }}
                             className='px-10 py-5 bg-white text-slate-900 rounded-3xl font-black text-sm uppercase tracking-widest border border-slate-100 shadow-sm hover:bg-slate-50 active:scale-95 transition-all'
                         >
                             AI Symptom Checker
@@ -132,24 +138,101 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Section 2: Trusted By / Social Proof */}
-            <section className='bg-white py-20 border-y border-slate-50'>
-                <div className='container mx-auto px-6 space-y-12'>
-                    <p className='text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.5em]'>Trusted by Leading Institutions</p>
-                    <div className='flex flex-wrap items-center justify-center gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-700'>
-                        <img src={assets.hospital_logos} alt="Hospital Logos" className='h-12 w-auto object-contain' />
+            {/* Section 2: Premium Trust & Stats Section */}
+            <section className='relative py-24 overflow-hidden' style={{ background: 'linear-gradient(135deg, #f0fdfa 0%, #f8fafc 50%, #ecfeff 100%)' }}>
+                {/* Decorative blobs */}
+                <div className='absolute top-0 left-0 w-72 h-72 rounded-full blur-[120px] pointer-events-none' style={{ background: 'rgba(13,148,136,0.07)' }} />
+                <div className='absolute bottom-0 right-0 w-96 h-96 rounded-full blur-[100px] pointer-events-none' style={{ background: 'rgba(8,145,178,0.06)' }} />
+
+                <div className='container mx-auto px-6 relative z-10 space-y-20'>
+
+                    {/* — Big Stats Row — */}
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-6'>
+                        {[
+                            { value: '500+', label: 'Verified Doctors', icon: '🩺', color: 'from-teal-400/10 to-teal-500/5', border: 'border-teal-100' },
+                            { value: '10K+', label: 'Happy Patients', icon: '❤️', color: 'from-rose-400/10 to-rose-500/5', border: 'border-rose-100' },
+                            { value: '20+', label: 'Specializations', icon: '🔬', color: 'from-cyan-400/10 to-cyan-500/5', border: 'border-cyan-100' },
+                            { 
+                                value: '4.9★', 
+                                label: 'Patient Rating', 
+                                icon: '⭐', 
+                                color: 'from-amber-400/10 to-amber-500/5', 
+                                border: 'border-amber-100',
+                                onClick: () => setIsReviewOpen(true)
+                            },
+                        ].map((stat, i) => (
+                            <motion.div
+                                key={i}
+                                onClick={stat.onClick}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className={`relative bg-gradient-to-br ${stat.color} border ${stat.border} rounded-3xl p-8 text-center group hover:-translate-y-2 transition-all duration-300 backdrop-blur-sm ${stat.onClick ? 'cursor-pointer hover:shadow-xl' : 'cursor-default'}`}
+                            >
+                                <div className='text-4xl mb-3'>{stat.icon}</div>
+                                <p className='text-4xl font-black text-slate-900 tracking-tight mb-1'>{stat.value}</p>
+                                <p className='text-[11px] font-black text-slate-500 uppercase tracking-widest'>{stat.label}</p>
+                            </motion.div>
+                        ))}
                     </div>
-                    <div className='flex items-center justify-center gap-12 pt-8'>
-                        <div className='flex items-center gap-2'>
-                            <Award className='text-primary' size={20} />
-                            <span className='text-xs font-black text-slate-900 uppercase tracking-widest'>NABH Certified</span>
-                        </div>
-                        <div className='h-4 w-px bg-slate-200' />
-                        <div className='flex items-center gap-2'>
-                            <Star className='text-yellow-400 fill-yellow-400' size={20} />
-                            <span className='text-xs font-black text-slate-900 uppercase tracking-widest'>4.9/5 Patient Rating</span>
+
+                    {/* — Partner Hospital Tiles — */}
+                    <div className='space-y-8'>
+                        <p className='text-center text-[10px] font-black uppercase tracking-[0.4em] text-slate-400'>Trusted by India's Leading Hospitals & Networks</p>
+                        <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4'>
+                            {[
+                                { name: 'Apollo Hospitals', abbr: 'AH', color: '#0D9488' },
+                                { name: 'Fortis Healthcare', abbr: 'FH', color: '#0891B2' },
+                                { name: 'AIIMS Delhi', abbr: 'AI', color: '#6366F1' },
+                                { name: 'Max Hospital', abbr: 'MX', color: '#10B981' },
+                                { name: 'Medanta Group', abbr: 'MG', color: '#F59E0B' },
+                                { name: 'Narayana Health', abbr: 'NH', color: '#EC4899' },
+                            ].map((hosp, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.08 }}
+                                    className='group flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-slate-100 hover:border-primary/20 hover:shadow-xl hover:shadow-teal-100 hover:-translate-y-1 transition-all duration-300 cursor-default'
+                                >
+                                    <div className='w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-lg shadow-md'
+                                        style={{ background: `linear-gradient(135deg, ${hosp.color}, ${hosp.color}99)` }}
+                                    >
+                                        {hosp.abbr}
+                                    </div>
+                                    <p className='text-[10px] font-black text-slate-600 uppercase tracking-wider text-center leading-tight'>{hosp.name}</p>
+                                </motion.div>
+                            ))}
                         </div>
                     </div>
+
+                    {/* — Trust Badges Row — */}
+                    <div className='flex flex-wrap items-center justify-center gap-6'>
+                        {[
+                            { icon: '🏆', label: 'NABH Certified', sub: 'National Accreditation Board' },
+                            { icon: '🔒', label: 'HIPAA Compliant', sub: 'End-to-end Encrypted' },
+                            { icon: '🌐', label: 'ISO 27001', sub: 'Data Security Standard' },
+                            { icon: '⚡', label: '99.9% Uptime', sub: 'Always Available' },
+                        ].map((badge, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className='flex items-center gap-4 px-6 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300'
+                            >
+                                <span className='text-2xl'>{badge.icon}</span>
+                                <div>
+                                    <p className='text-sm font-black text-slate-900'>{badge.label}</p>
+                                    <p className='text-[10px] font-bold text-slate-400 uppercase tracking-widest'>{badge.sub}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
                 </div>
             </section>
 
@@ -162,7 +245,7 @@ const Home = () => {
 
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                     {[
-                        { title: 'Book Appointment', desc: 'Find and schedule visits with top-rated specialists in seconds.', icon: UserPlus, color: 'text-blue-500 bg-blue-50' },
+                        { title: 'Book Appointment', desc: 'Find and schedule visits with top-rated specialists in seconds.', icon: UserPlus, color: 'text-teal-600 bg-teal-50' },
                         { title: 'Online Consultation', desc: 'Secure video and chat consultations from the comfort of home.', icon: Globe, color: 'text-indigo-500 bg-indigo-50' },
                         { title: 'AI Symptom Checker', desc: 'Instant guidance based on your symptoms using advanced AI.', icon: Activity, color: 'text-emerald-500 bg-emerald-50' },
                         { title: 'Medical History', desc: 'Your health records, prescriptions, and history in one secure place.', icon: Shield, color: 'text-rose-500 bg-rose-50' },
@@ -208,7 +291,7 @@ const Home = () => {
                                 ))}
                             </ul>
                         </div>
-                        <div className='flex-1 w-full'>
+                        <div id="ai-symptom-checker" className='flex-1 w-full'>
                             <SymptomChecker />
                         </div>
                     </div>
@@ -234,7 +317,7 @@ const Home = () => {
                                 className='group flex flex-col items-center p-10 bg-white rounded-[48px] border border-slate-100 transition-all duration-500 hover:border-primary/20 hover:shadow-premium hover:-translate-y-2' 
                                 to={`/doctors/${item.name}`}
                             >
-                                <div className='w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:bg-blue-50 group-hover:scale-110 shadow-inner'>
+                                <div className='w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:bg-teal-50 group-hover:scale-110 shadow-inner'>
                                     <img className='w-10 group-hover:rotate-12 transition-transform duration-500' src={item.image} alt={item.name} />
                                 </div>
                                 <p className='text-xs font-black text-slate-900 tracking-tight group-hover:text-primary transition-colors text-center'>{item.name}</p>
@@ -254,14 +337,14 @@ const Home = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                    {doctors.slice(0, 4).map((item, index) => (
+                    {(doctors || []).slice(0, 4).map((item, index) => (
                         <div 
                             key={index}
                             onClick={() => { navigate(`/appointment/${item._id}`); window.scrollTo(0, 0); }}
                             className='group bg-white rounded-[48px] border border-slate-100 overflow-hidden cursor-pointer hover:shadow-elevated transition-all duration-500 hover:-translate-y-2'
                         >
                             <div className='relative h-72 overflow-hidden bg-slate-50'>
-                                <img className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' src={item.image || item.fallbackImage} alt={item.name} />
+                                <img className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110' src={item.image || item.fallbackImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"} alt={item.name || "Doctor"} />
                                 <div className='absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-2xl flex items-center gap-2 shadow-sm border border-white/50'>
                                     <div className={`w-2 h-2 rounded-full ${item.available ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                                     <span className={`text-[9px] font-black uppercase tracking-widest ${item.available ? 'text-emerald-600' : 'text-slate-500'}`}>
@@ -276,19 +359,19 @@ const Home = () => {
                             </div>
                             <div className='p-10 space-y-4'>
                                 <div className='flex items-center justify-between'>
-                                    <p className='text-[10px] font-black text-primary uppercase tracking-[0.2em]'>{item.speciality}</p>
+                                    <p className='text-[10px] font-black text-primary uppercase tracking-[0.2em]'>{item.speciality || 'Specialist'}</p>
                                     <div className='flex items-center gap-1 text-amber-400'>
                                         <Star size={12} fill="currentColor" />
                                         <span className='text-xs font-black text-slate-900'>4.9</span>
                                     </div>
                                 </div>
                                 <h3 className='text-2xl font-black text-slate-900 tracking-tight group-hover:text-primary transition-colors'>
-                                    {item.name.startsWith('Dr.') ? item.name : `Dr. ${item.name}`}
+                                    {(item.name || 'Unknown').startsWith('Dr.') ? item.name : `Dr. ${item.name || 'Unknown'}`}
                                 </h3>
                                 <div className='flex items-center gap-4 text-slate-400'>
                                     <div className='flex items-center gap-1'>
                                         <ShieldCheck size={14} className="text-emerald-500" />
-                                        <p className='text-xs font-bold'>{item.experience} Exp.</p>
+                                        <p className='text-xs font-bold'>{item.experience || 'N/A'} Exp.</p>
                                     </div>
                                     <div className='w-1.5 h-1.5 rounded-full bg-slate-100' />
                                     <p className='text-xs font-bold text-slate-900'>$50 / Visit</p>
@@ -330,7 +413,7 @@ const Home = () => {
             </section>
 
             {/* Section 8: Testimonials */}
-            <section className='container mx-auto px-6 space-y-20 pb-32'>
+            <section id="testimonials" className='container mx-auto px-6 space-y-20 pb-32'>
                 <div className='text-center space-y-4'>
                     <p className='text-[10px] font-black text-primary uppercase tracking-[0.4em]'>Success Stories</p>
                     <h2 className='text-4xl md:text-5xl font-[900] text-slate-900 tracking-tight'>What Patients Say</h2>
@@ -401,11 +484,14 @@ const Home = () => {
 
             {/* Section 10: Final CTA Section */}
             <section className='py-32 container mx-auto px-6'>
-                <div className='bg-[#2563EB] rounded-[60px] p-12 md:p-24 text-center space-y-12 relative overflow-hidden'>
-                    <div className='absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent pointer-events-none' />
+                <div
+                    className='rounded-[60px] p-12 md:p-24 text-center space-y-12 relative overflow-hidden'
+                    style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0891B2 60%, #0E7490 100%)' }}
+                >
+                    <div className='absolute inset-0 pointer-events-none' style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%)' }} />
                     <div className='relative z-10 space-y-6'>
                         <h2 className='text-5xl md:text-7xl font-[900] text-white tracking-tight leading-none'>Healthcare Made <br /> Beautifully Simple.</h2>
-                        <p className='text-blue-100 text-lg md:text-xl font-medium max-w-xl mx-auto opacity-80'>Join 10,000+ patients who have upgraded their health experience with CarePoint.</p>
+                        <p className='text-teal-100 text-lg md:text-xl font-medium max-w-xl mx-auto opacity-90'>Join 10,000+ patients who have upgraded their health experience with CarePoint.</p>
                     </div>
                     <div className='relative z-10 flex flex-wrap items-center justify-center gap-6'>
                         <button 
@@ -416,7 +502,7 @@ const Home = () => {
                         </button>
                         <button 
                             onClick={() => navigate('/contact')}
-                            className='px-12 py-6 bg-blue-600 text-white rounded-[28px] font-black text-sm uppercase tracking-widest border border-blue-400/50 hover:bg-blue-700 active:scale-95 transition-all'
+                            className='px-12 py-6 bg-white/15 text-white rounded-[28px] font-black text-sm uppercase tracking-widest border border-white/30 hover:bg-white/25 active:scale-95 transition-all backdrop-blur-sm'
                         >
                             Talk to Support
                         </button>
@@ -431,11 +517,18 @@ const Home = () => {
                 className='fixed bottom-10 right-10 z-[1000]'
             >
                 <button 
-                    onClick={() => navigate('/doctors')}
+                    onClick={() => {
+                        if (!token) {
+                            toast.info('Please login to talk to a doctor');
+                            navigate('/login');
+                        } else {
+                            setIsChatOpen(true);
+                        }
+                    }}
                     className='group relative flex items-center gap-4 pl-8 pr-4 py-4 bg-slate-900 text-white rounded-full shadow-elevated hover:bg-primary transition-all active:scale-95'
                 >
                     <div className='flex flex-col items-end'>
-                        <p className='text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-blue-100 transition-colors'>Need urgent care?</p>
+                        <p className='text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-teal-100 transition-colors'>Need urgent care?</p>
                         <p className='text-xs font-black tracking-tight'>Talk to Doctor Now</p>
                     </div>
                     <div className='w-10 h-10 bg-primary group-hover:bg-white group-hover:text-primary rounded-full flex items-center justify-center transition-all shadow-lg'>
@@ -443,6 +536,28 @@ const Home = () => {
                     </div>
                 </button>
             </motion.div>
+
+            {/* Platform Feedback Modal */}
+            <ReviewModal 
+                isOpen={isReviewOpen} 
+                onClose={() => setIsReviewOpen(false)} 
+                onSubmit={(rating, review) => {
+                    toast.success('Thank you for your valuable feedback!');
+                    setIsReviewOpen(false);
+                }} 
+                doctorName="CarePoint Platform" 
+            />
+
+            {/* Instant Support Chat */}
+            {isChatOpen && (
+                <Chat 
+                    roomId="carepoint_support" 
+                    receiverName="CarePoint Support" 
+                    onClose={() => setIsChatOpen(false)} 
+                    senderId={userData?._id || 'guest'} 
+                    senderModel="user" 
+                />
+            )}
         </div>
     );
 };

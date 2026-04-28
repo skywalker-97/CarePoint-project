@@ -16,6 +16,25 @@ const DoctorAppointments = () => {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [patientHistory, setPatientHistory] = useState([]);
+    const [noShowPredictions, setNoShowPredictions] = useState({});
+
+    const fetchNoShowPredictions = async (pendingAppointments) => {
+        const predictions = {};
+        for (const appt of pendingAppointments) {
+            try {
+                const { data } = await axios.post(backendUrl + '/api/ai/predict-no-show', { 
+                    appointmentData: appt,
+                    patientHistory: [] // We could fetch this if needed
+                }, { headers: { dToken } });
+                if (data.success) {
+                    predictions[appt._id] = data.prediction;
+                }
+            } catch (e) {
+                console.log("No-Show Prediction error:", e);
+            }
+        }
+        setNoShowPredictions(prev => ({ ...prev, ...predictions }));
+    }
 
     const handleGeneratePrescription = async (prescriptionData) => {
         try {
@@ -54,6 +73,13 @@ const DoctorAppointments = () => {
         }
     }, [dToken]);
 
+    useEffect(() => {
+        const pending = appointments.filter(a => !a.isCompleted && !a.cancelled);
+        if (pending.length > 0) {
+            fetchNoShowPredictions(pending);
+        }
+    }, [appointments]);
+
     return (
         <div className='w-full max-w-6xl m-5 font-inter'>
             <div className='flex items-center gap-3 mb-6'>
@@ -75,14 +101,32 @@ const DoctorAppointments = () => {
                 </div>
 
                 {
-                    appointments.map((item, index) => (
+                    (appointments || []).map((item, index) => (
                         <div className='flex flex-wrap justify-between sm:grid grid-cols-[0.5fr_2fr_1fr_1fr_3fr_1fr_1.5fr] gap-1 items-center text-slate-600 py-5 px-8 border-b hover:bg-slate-50/80 transition-colors' key={index}>
                             <p className='max-sm:hidden font-bold'>{index + 1}</p>
                             <div className='flex flex-col gap-1'>
-                                <div className='flex items-center gap-3'>
-                                    <img className='w-10 h-10 rounded-xl bg-slate-100 object-cover' src={item.userData.image} alt="" />
-                                    <p className='text-slate-900 font-black tracking-tight'>{item.userData.name}</p>
-                                </div>
+                                    <div className='flex items-center gap-3'>
+                                        <img className='w-10 h-10 rounded-xl bg-slate-100 object-cover' src={item.userData?.image || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"} alt="" />
+                                        <div>
+                                            <p className='text-slate-900 font-black tracking-tight'>{item.userData?.name || "Patient"}</p>
+                                            {noShowPredictions[item._id] && !item.isCompleted && !item.cancelled && (
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${
+                                                        noShowPredictions[item._id].riskLevel === 'High' ? 'bg-rose-500 animate-pulse' :
+                                                        noShowPredictions[item._id].riskLevel === 'Medium' ? 'bg-amber-500' :
+                                                        'bg-emerald-500'
+                                                    }`} />
+                                                    <p className={`text-[8px] font-black uppercase tracking-widest ${
+                                                        noShowPredictions[item._id].riskLevel === 'High' ? 'text-rose-500' :
+                                                        noShowPredictions[item._id].riskLevel === 'Medium' ? 'text-amber-500' :
+                                                        'text-emerald-500'
+                                                    }`}>
+                                                        {noShowPredictions[item._id].riskLevel} No-Show Risk
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 <button 
                                     onClick={() => { setSelectedAppointment(item); fetchHistory(item.userId); }}
                                     className='flex items-center gap-1.5 text-[9px] font-black text-primary uppercase tracking-widest hover:underline'
@@ -95,7 +139,7 @@ const DoctorAppointments = () => {
                                     {item.payment ? 'Online' : 'CASH'}
                                 </p>
                             </div>
-                            <p className='max-sm:hidden font-bold'>{calculateAge(item.userData.dob)}</p>
+                            <p className='max-sm:hidden font-bold'>{calculateAge(item.userData?.dob || "")}</p>
                             <p className='font-bold text-slate-900'>{slotDateFormat(item.slotDate)}, <span className='text-primary'>{item.slotTime}</span></p>
                             <p className='font-black text-slate-900'>{currency}{item.amount}</p>
                             <div className='flex items-center justify-center gap-2'>

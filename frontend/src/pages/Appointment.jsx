@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { assets } from '../assets/assets_frontend/assets';
 import ReviewList from '../components/ReviewList';
+import { getDoctorImage } from '../utils/imageHelper';
 
 const Appointment = () => {
     const { docId } = useParams();
@@ -24,7 +25,7 @@ const Appointment = () => {
     const [reviewCount, setReviewCount] = useState(0);
 
     const fetchDocInfo = async () => {
-        const docInfo = doctors.find((doc) => doc._id === docId);
+        const docInfo = (doctors || []).find((doc) => doc._id === docId);
         setDocInfo(docInfo);
     };
 
@@ -142,79 +143,134 @@ const Appointment = () => {
     if (!docInfo) return <div className='py-5'>Loading...</div>;
 
     return (
-        <div>
+        <div className='max-w-6xl mx-auto px-4 sm:px-6 py-6'>
             {/* ---------- Doctor Details ----------- */}
-            <div className='flex flex-col sm:flex-row gap-4'>
-                <div>
-                   <div className='bg-primary w-full sm:max-w-72 h-72 rounded-lg flex flex-col items-center justify-center text-white font-bold text-6xl shadow-md overflow-hidden'>
-                       {docInfo.image ? <img className='w-full h-full object-cover' src={docInfo.image} alt={docInfo.name} /> : docInfo?.name?.charAt(0)}
-                   </div>
+            <div className='flex flex-col sm:flex-row gap-6 items-start'>
+
+                {/* Doctor Image — transparent bg with soft gradient */}
+                <div className='w-full sm:w-72 flex-shrink-0'>
+                    <div className='relative w-full sm:w-72 rounded-3xl overflow-hidden shadow-2xl shadow-teal-100'
+                        style={{
+                            background: 'linear-gradient(145deg, rgba(204,251,241,0.5) 0%, rgba(240,253,250,0.35) 50%, rgba(255,255,255,0.1) 100%)',
+                            backdropFilter: 'blur(10px)',
+                            WebkitBackdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(20,184,166,0.2)',
+                        }}
+                    >
+                        <img
+                            className='w-full object-cover object-top'
+                            style={{ minHeight: '280px', maxHeight: '340px' }}
+                            src={getDoctorImage(docInfo)}
+                            alt={docInfo?.name || "Doctor"}
+                            onError={(e) => {
+                                e.currentTarget.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                            }}
+                        />
+                        {/* Subtle bottom fade */}
+                        <div className='absolute bottom-0 left-0 right-0 h-16'
+                            style={{ background: 'linear-gradient(to top, rgba(240,253,250,0.7), transparent)' }}
+                        />
+                        {/* Available badge */}
+                        <div className='absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full'
+                            style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.6)' }}
+                        >
+                            <div className={`w-2 h-2 rounded-full ${docInfo.available ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                            <span className='text-[9px] font-black uppercase tracking-widest text-slate-700'>
+                                {docInfo.available ? 'Available' : 'Busy'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <div className='flex-1 border border-gray-400 rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0'>
-                    {/* Doc Info : name, degree, experience */}
-                    <p className='flex items-center gap-2 text-2xl font-medium text-gray-900'>
-                        {docInfo.name} 
-                        <img className='w-5' src={assets.verified_icon} alt="Verified Icon" />
-                    </p>
-                    <div className='flex items-center gap-2 text-sm mt-1 text-gray-600'>
-                        <p>{docInfo.degree} - {docInfo.speciality}</p>
-                        <button className='py-0.5 px-2 border text-xs rounded-full'>{docInfo.experience}</button>
+                {/* Doctor Info Card */}
+                <div className='flex-1 border border-gray-100 rounded-3xl p-6 sm:p-8 bg-white shadow-lg shadow-blue-50/80'>
+                    {/* Name & Verified */}
+                    <div className='flex flex-wrap items-center gap-2 mb-2'>
+                        <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>{docInfo.name}</h1>
+                        <img className='w-5 h-5' src={assets.verified_icon} alt="Verified Icon" />
                     </div>
 
-                    <div className='mt-3 flex items-center gap-2 text-sm text-gray-500 font-medium'>
+                    {/* Degree & Speciality */}
+                    <div className='flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-3'>
+                        <p className='font-medium'>{docInfo.degree || "N/A"} - {docInfo.speciality || "Specialist"}</p>
+                        <span className='py-0.5 px-3 border border-gray-200 text-[10px] font-bold rounded-full bg-gray-50 uppercase tracking-wider'>
+                            {docInfo.experience || "New"}
+                        </span>
+                    </div>
+
+                    {/* Email */}
+                    <div className='flex items-center gap-2 text-sm text-gray-500 font-medium mb-4'>
                         <span className='font-bold text-gray-700'>Email:</span>
-                        <a href={`mailto:${docInfo.email}`} className='text-primary hover:underline'>{docInfo.email}</a>
+                        <a href={`mailto:${docInfo.email}`} className='text-primary hover:underline break-all'>{docInfo.email}</a>
                     </div>
 
                     {/* Doc About */}
-                    <div>
-                        <p className='flex items-center gap-1 text-sm font-medium text-gray-900 mt-3'>
+                    <div className='border-t border-gray-50 pt-4'>
+                        <p className='flex items-center gap-1 text-sm font-bold text-gray-800 uppercase tracking-widest mb-2'>
                             About <img className='w-3' src={assets.info_icon} alt="Info Icon" />
                         </p>
-                        <p className='text-sm text-gray-500 max-w-[700px] mt-1'>
+                        <p className='text-sm text-gray-500 leading-relaxed'>
                             {docInfo.about}
                         </p>
                     </div>
 
-                    <p className='text-gray-500 font-medium mt-4'>
-                        Appointment fee: <span className='text-gray-800'>{currencySymbol}{docInfo.fees}</span>
-                    </p>
+                    {/* Fee */}
+                    <div className='mt-4 pt-4 border-t border-gray-50'>
+                        <p className='text-gray-500 font-medium'>
+                            Appointment fee: <span className='text-xl font-bold text-primary'>{currencySymbol}{docInfo.fees}</span>
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {/* ------- Booking Slots ------- */}
-            <div className='sm:ml-72 sm:pl-4 mt-8 font-medium text-gray-700'>
-                <p>Booking slots</p>
-                <div className='flex gap-3 items-center w-full overflow-x-scroll mt-4 pb-2'>
+            <div className='mt-10'>
+                <p className='text-base font-bold text-gray-700 mb-4 uppercase tracking-widest text-[11px]'>Select Booking Slot</p>
+
+                {/* Day Picker */}
+                <div className='flex gap-3 items-center w-full overflow-x-auto pb-2'>
                     {docSlots.length > 0 && docSlots.map((item, index) => {
                         const dateForThisDay = new Date();
                         dateForThisDay.setDate(dateForThisDay.getDate() + index);
                         return (
-                            <div onClick={() => setSlotIndex(index)} key={index} className={`text-center py-6 min-w-16 rounded-full cursor-pointer transition-all flex flex-col items-center justify-center ${slotIndex === index ? 'bg-primary text-white' : 'border border-gray-200 hover:bg-gray-100'}`}>
-                                <p>{daysOfWeek[dateForThisDay.getDay()]}</p>
-                                <p className='mt-1 text-lg'>{dateForThisDay.getDate()}</p>
+                            <div
+                                onClick={() => setSlotIndex(index)}
+                                key={index}
+                                className={`text-center py-5 min-w-[60px] rounded-2xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center flex-shrink-0 ${slotIndex === index ? 'bg-primary text-white shadow-lg shadow-teal-200' : 'border border-gray-200 hover:bg-teal-50 hover:border-teal-200 bg-white'}`}
+                            >
+                                <p className='text-[10px] font-bold uppercase'>{daysOfWeek[dateForThisDay.getDay()]}</p>
+                                <p className='mt-1 text-lg font-bold'>{dateForThisDay.getDate()}</p>
                             </div>
-                        )
+                        );
                     })}
                 </div>
 
-                <div className='flex items-center gap-3 w-full overflow-x-scroll mt-4 pb-4 px-2'>
-                    {docSlots.length > 0 && docSlots[slotIndex].length === 0 && (
-                        <p className='text-gray-500 font-light'>No slots available for this date. Please select another day.</p>
+                {/* Time Picker */}
+                <div className='flex items-center gap-3 w-full overflow-x-auto mt-5 pb-4'>
+                    {(docSlots || []).length > 0 && (docSlots[slotIndex] || []).length === 0 && (
+                        <p className='text-gray-500 font-light text-sm'>No slots available for this date. Please select another day.</p>
                     )}
-                    {docSlots.length > 0 && docSlots[slotIndex].map((item, index) => (
-                        <p onClick={() => setSlotTime(item.time)} key={index} className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer transition-all ${item.time === slotTime ? 'bg-primary text-white' : 'text-gray-400 border border-gray-300 hover:text-black hover:border-black'}`}>
+                    {(docSlots || []).length > 0 && (docSlots[slotIndex] || []).map((item, index) => (
+                        <p
+                            onClick={() => setSlotTime(item.time)}
+                            key={index}
+                            className={`text-sm font-medium flex-shrink-0 px-5 py-2.5 rounded-full cursor-pointer transition-all duration-300 ${item.time === slotTime ? 'bg-primary text-white shadow-md shadow-teal-200' : 'text-gray-500 border border-gray-200 hover:text-primary hover:border-primary bg-white'}`}
+                        >
                             {item.time}
                         </p>
                     ))}
                 </div>
 
-                <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6 hover:scale-105 transition-all duration-300'>Book an appointment</button>
+                <button
+                    onClick={bookAppointment}
+                    className='mt-4 bg-primary text-white text-sm font-bold px-12 py-3.5 rounded-full hover:bg-teal-600 hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-teal-200'
+                >
+                    Book an Appointment
+                </button>
             </div>
 
             {/* ------- Reviews Section ------- */}
-            <div className='mt-32 pb-20'>
+            <div className='mt-16 pb-20'>
                 <ReviewList reviews={reviews} averageRating={averageRating} reviewCount={reviewCount} />
             </div>
         </div>

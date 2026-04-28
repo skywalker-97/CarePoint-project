@@ -3,6 +3,7 @@ import { DoctorContext } from '../context/DoctorContext';
 import { AppContext } from '../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getDoctorImage } from '../utils/imageHelper';
 
 const DoctorProfile = () => {
 
@@ -46,7 +47,34 @@ const DoctorProfile = () => {
         <div className='m-2 md:m-5'>
             <div className='flex flex-col xl:flex-row gap-6'>
                 <div className="w-full xl:max-w-72">
-                    <img className='bg-primary/5 w-full rounded-2xl border border-gray-100 shadow-sm' src={profileData.image} alt="" />
+                    <div className='relative rounded-3xl overflow-hidden shadow-2xl shadow-teal-100'
+                        style={{
+                            background: 'linear-gradient(145deg, rgba(204,251,241,0.5) 0%, rgba(240,253,250,0.35) 50%, rgba(255,255,255,0.1) 100%)',
+                            backdropFilter: 'blur(10px)',
+                            WebkitBackdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(20,184,166,0.2)',
+                        }}
+                    >
+                        <img
+                            className='w-full object-cover object-top'
+                            style={{ minHeight: '260px', maxHeight: '360px' }}
+                            src={getDoctorImage(profileData)}
+                            alt={profileData.name || "Doctor"}
+                        />
+                        {/* Bottom soft fade */}
+                        <div className='absolute bottom-0 left-0 right-0 h-14'
+                            style={{ background: 'linear-gradient(to top, rgba(239,246,255,0.6), transparent)' }}
+                        />
+                        {/* Available badge */}
+                        <div className='absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full'
+                            style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.6)' }}
+                        >
+                            <div className={`w-2 h-2 rounded-full ${profileData.available ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                            <span className='text-[9px] font-black uppercase tracking-widest text-slate-700'>
+                                {profileData.available ? 'Available' : 'Busy'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <div className='flex-1 border border-gray-100 rounded-2xl p-6 md:p-8 bg-white shadow-sm'>
@@ -88,10 +116,10 @@ const DoctorProfile = () => {
                             <div className='text-sm text-gray-600 space-y-1'>
                                 {isEdit 
                                     ? <div className="space-y-2">
-                                        <input className="w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5" type="text" onChange={(e) => setProfileData(prev => ({ ...prev, address: { ...prev.address, line1: e.target.value } }))} value={profileData.address.line1} />
-                                        <input className="w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5" type="text" onChange={(e) => setProfileData(prev => ({ ...prev, address: { ...prev.address, line2: e.target.value } }))} value={profileData.address.line2} />
+                                        <input className="w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5" type="text" onChange={(e) => setProfileData(prev => ({ ...prev, address: { ...(prev.address || {}), line1: e.target.value } }))} value={profileData.address?.line1 || ""} />
+                                        <input className="w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5" type="text" onChange={(e) => setProfileData(prev => ({ ...prev, address: { ...(prev.address || {}), line2: e.target.value } }))} value={profileData.address?.line2 || ""} />
                                       </div>
-                                    : <p>{profileData.address.line1}<br />{profileData.address.line2}</p>
+                                    : <p>{profileData.address?.line1 || "N/A"}<br />{profileData.address?.line2 || ""}</p>
                                 }
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 import { createContext, useState } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { doctors as initialDoctors } from '../assets/assets_frontend/assets';
+import { getDoctorImage } from '../utils/imageHelper';
 
 export const DoctorContext = createContext();
 
@@ -34,6 +34,7 @@ const DoctorContextProvider = (props) => {
             if (data.success) {
                 toast.success(data.message);
                 getAppointments();
+                getDashData();
             } else {
                 toast.error(data.message);
             }
@@ -49,6 +50,7 @@ const DoctorContextProvider = (props) => {
             if (data.success) {
                 toast.success(data.message);
                 getAppointments();
+                getDashData();
             } else {
                 toast.error(data.message);
             }
@@ -77,14 +79,8 @@ const DoctorContextProvider = (props) => {
             const { data } = await axios.get(backendUrl + '/api/doctor/profile', { headers: { dtoken: dToken } });
             if (data.success) {
                 const doc = data.profileData;
-                const assetDoc = initialDoctors.find(m => m.name === doc.name);
-                const fallbackImage = assetDoc?.image || '';
-                
-                if (!doc.image || doc.image.includes('/src/assets/') || doc.image.includes('\\src\\assets\\')) {
-                    setProfileData({ ...doc, image: fallbackImage });
-                } else {
-                    setProfileData(doc);
-                }
+                const image = getDoctorImage(doc);
+                setProfileData({ ...doc, image });
             } else {
                 toast.error(data.message);
             }

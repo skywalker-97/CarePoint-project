@@ -5,28 +5,13 @@ import axios from 'axios';
 
 const AdminAppointments = () => {
 
-    const { aToken, appointments, getAllAppointments, backendUrl } = useContext(AdminContext);
+    const { aToken, appointments, getAllAppointments, cancelAppointment } = useContext(AdminContext);
 
     useEffect(() => {
         if (aToken) {
             getAllAppointments();
         }
     }, [aToken]);
-
-    const cancelAppointment = async (appointmentId) => {
-        try {
-            const { data } = await axios.post(backendUrl + '/api/admin/cancel-appointment', { appointmentId }, { headers: { aToken } });
-            if (data.success) {
-                toast.success(data.message);
-                getAllAppointments();
-            } else {
-                toast.error(data.message);
-            }
-        } catch (error) {
-            console.log(error);
-            toast.error(error.message);
-        }
-    }
 
     return (
         <div className='w-full max-w-6xl m-5'>
@@ -42,19 +27,19 @@ const AdminAppointments = () => {
                     <p>Action</p>
                 </div>
 
-                {appointments.map((item, index) => (
+                {(appointments || []).map((item, index) => (
                     <div className='flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50' key={index}>
                          <p className='max-sm:hidden'>{index + 1}</p>
                          <div className='flex items-center gap-2'>
                             <div className='w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-primary'>
-                                {item.userData.name.charAt(0)}
+                                {(item.userData?.name || "P").charAt(0)}
                             </div> 
-                            <p>{item.userData.name}</p>
+                            <p>{item.userData?.name || "Unknown Patient"}</p>
                          </div>
                          <p className='max-sm:hidden'>N/A</p>
                          <p>{item.slotDate}, {item.slotTime}</p>
                          <div className='flex items-center gap-2'>
-                            <p>{item.docData.name}</p>
+                            <p>{item.docData?.name || "Unknown Doctor"}</p>
                          </div>
                          <p>${item.amount}</p>
                          {item.cancelled ? (

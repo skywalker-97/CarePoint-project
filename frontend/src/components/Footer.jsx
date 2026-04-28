@@ -19,8 +19,21 @@ const Footer = () => {
           {/* Brand & Mission Section */}
           <div className="space-y-10 lg:col-span-2">
             <div className='flex items-center gap-3'>
-                <img className='w-10 h-10 object-contain' src={assets.logo} alt="CarePoint Logo" />
-                <span className='text-3xl font-black text-slate-900 tracking-tighter'>CarePoint<span className='text-primary'>.</span></span>
+                <div className="relative w-10 h-10 flex-shrink-0">
+                    <div className="absolute inset-0 rounded-xl"
+                        style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0891B2 100%)' }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative w-6 h-6">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[6px] h-full bg-white rounded-full"/>
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[6px] bg-white rounded-full"/>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-col leading-none">
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em]" style={{ color: '#0D9488' }}>Healthcare</span>
+                    <span className="font-black tracking-tight" style={{ fontSize: '22px', background: 'linear-gradient(90deg, #0D9488, #0891B2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CarePoint</span>
+                </div>
             </div>
             <p className='text-[#64748B] font-medium leading-relaxed max-w-sm text-lg'>
               Building the future of healthcare with premium, patient-centric technology. We connect you with world-class specialists in seconds.
@@ -71,13 +84,13 @@ const Footer = () => {
             <h4 className='text-[10px] font-black text-slate-900 uppercase tracking-[0.4em]'>Contact</h4>
             <ul className='flex flex-col gap-6'>
               <li className='flex items-center gap-4 group cursor-pointer'>
-                  <div className='w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 transition-all'>
+                  <div className='w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-teal-50 transition-all'>
                       <Phone size={18} />
                   </div>
                   <span className='font-black text-slate-600 group-hover:text-slate-900 transition-colors'>+1 800 CAREPT</span>
               </li>
               <li className='flex items-center gap-4 group cursor-pointer'>
-                  <div className='w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 transition-all'>
+                  <div className='w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-teal-50 transition-all'>
                       <Mail size={18} />
                   </div>
                   <span className='font-black text-slate-600 group-hover:text-slate-900 transition-colors'>hello@carepoint.com</span>

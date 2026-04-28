@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        'primary': '#5f6FFF',
-        'secondary': '#2bb19c',
+        'primary': '#0D9488',      /* Medical Teal — professional healthcare color */
+        'secondary': '#0891B2',    /* Teal-Cyan — complementary medical shade */
       },
       gridTemplateColumns:{
         'auto':'repeat(auto-fill, minmax(200px, 1fr))'

@@ -16,6 +16,11 @@ const prescriptionSchema = new mongoose.Schema({
         }
     ],
     labTests: { type: String, default: "" },
+    consultationSummary: { type: String, default: "" },
+    followUpPlan: { type: String, default: "" },
+    careInstructions: { type: [String], default: [] },
+    redFlags: { type: [String], default: [] },
+    recommendedTests: { type: [String], default: [] },
     followUpDate: { type: String, default: "" },
     note: { type: String, default: "" },
     createdAt: { type: Date, default: Date.now }

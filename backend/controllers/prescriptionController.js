@@ -8,7 +8,11 @@ import createNotification from '../utils/notify.js';
 // API to generate and save prescription
 const generatePrescription = async (req, res) => {
     try {
-        const { appointmentId, docId, userId, diagnosis, symptoms, items, labTests, followUpDate, note } = req.body;
+        const { 
+            appointmentId, docId, userId, diagnosis, symptoms, items, 
+            labTests, consultationSummary, followUpDate, note,
+            followUpPlan, careInstructions, redFlags, recommendedTests 
+        } = req.body;
 
         // Check if prescription already exists for this appointment
         const existingPrescription = await prescriptionModel.findOne({ appointmentId });
@@ -26,15 +30,9 @@ const generatePrescription = async (req, res) => {
 
         // Save to Database
         const prescriptionData = {
-            appointmentId,
-            docId,
-            userId,
-            diagnosis,
-            symptoms,
-            items,
-            labTests,
-            followUpDate,
-            note
+            appointmentId, docId, userId, diagnosis, symptoms, items, 
+            labTests, consultationSummary, followUpDate, note,
+            followUpPlan, careInstructions, redFlags, recommendedTests
         };
         const newPrescription = new prescriptionModel(prescriptionData);
         const savedPrescription = await newPrescription.save();
@@ -121,11 +119,43 @@ const downloadPrescription = async (req, res) => {
         });
 
         // --- Additional Info ---
-        if (prescription.labTests || prescription.followUpDate) {
+        if (prescription.labTests || prescription.followUpDate || prescription.consultationSummary || prescription.careInstructions?.length > 0) {
             currentY += 20;
             doc.moveTo(50, currentY).lineTo(550, currentY).strokeColor('#F1F5F9').stroke();
             currentY += 20;
             
+            if (prescription.consultationSummary) {
+                doc.fillColor('#2563EB').fontSize(10).text('DOCTOR ADVICE', 50, currentY, { font: 'Helvetica-Bold' });
+                doc.fillColor('#0F172A').fontSize(10).text(prescription.consultationSummary, 50, currentY + 15, { width: 450, lineGap: 2 });
+                currentY += 65;
+            }
+
+            if (prescription.careInstructions?.length > 0) {
+                doc.fillColor('#2563EB').fontSize(10).text('CARE INSTRUCTIONS', 50, currentY, { font: 'Helvetica-Bold' });
+                currentY += 15;
+                prescription.careInstructions.forEach(instruction => {
+                    doc.fillColor('#0F172A').fontSize(10).text(`• ${instruction}`, 50, currentY);
+                    currentY += 15;
+                });
+                currentY += 10;
+            }
+
+            if (prescription.redFlags?.length > 0) {
+                doc.fillColor('#EF4444').fontSize(10).text('RED FLAGS - SEEK HELP IF:', 50, currentY, { font: 'Helvetica-Bold' });
+                currentY += 15;
+                prescription.redFlags.forEach(flag => {
+                    doc.fillColor('#B91C1C').fontSize(10).text(`! ${flag}`, 50, currentY);
+                    currentY += 15;
+                });
+                currentY += 10;
+            }
+
+            if (prescription.followUpPlan) {
+                doc.fillColor('#64748B').fontSize(9).text('FOLLOW-UP PLAN', 50, currentY);
+                doc.fillColor('#0F172A').fontSize(10).text(prescription.followUpPlan, 50, currentY + 15);
+                currentY += 45;
+            }
+
             if (prescription.labTests) {
                 doc.fillColor('#64748B').fontSize(9).text('RECOMMENDED LAB TESTS', 50, currentY);
                 doc.fillColor('#0F172A').fontSize(10).text(prescription.labTests, 50, currentY + 15);
@@ -133,7 +163,7 @@ const downloadPrescription = async (req, res) => {
             }
 
             if (prescription.followUpDate) {
-                doc.fillColor('#64748B').fontSize(9).text('FOLLOW-UP DATE', 50, currentY);
+                doc.fillColor('#64748B').fontSize(9).text('TARGET FOLLOW-UP', 50, currentY);
                 doc.fillColor('#0F172A').fontSize(10).text(prescription.followUpDate, 50, currentY + 15);
             }
         }
