@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import appointmentModel from '../models/appointmentModel.js';
 import sendEmail from '../config/notifications.js';
 import prescriptionModel from '../models/prescriptionModel.js';
+import createNotification from '../utils/notify.js';
 
 // API to get all doctors for frontend
 const doctorList = async (req, res) => {
@@ -100,6 +101,9 @@ const appointmentComplete = async (req, res) => {
         if (appointmentData && appointmentData.docId === docId) {
             await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true });
 
+            // Create Notification
+            await createNotification(appointmentData.userId, `Your appointment with Dr. ${appointmentData.docData.name} has been completed.`, "success", "/my-appointments");
+
             // Sending completion email to patient
             const { to, subject, html } = {
                 to: appointmentData.userData.email,
@@ -138,6 +142,10 @@ const appointmentCancel = async (req, res) => {
 
         if (appointmentData && appointmentData.docId === docId) {
             await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
+            
+            // Create Notification
+            await createNotification(appointmentData.userId, `Dr. ${appointmentData.docData.name} has cancelled your appointment.`, "alert", "/my-appointments");
+
             return res.json({ success: true, message: 'Appointment Cancelled' });
         } else {
             return res.json({ success: false, message: 'Cancellation Failed' });

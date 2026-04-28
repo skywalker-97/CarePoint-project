@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Clock, MapPin, ChevronRight, Bookmark } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AppContext } from '../context/AppContext';
 
 const DoctorCard = ({ doc }) => {
     const navigate = useNavigate();
+    const { onlineDoctors } = useContext(AppContext);
+    const isOnline = onlineDoctors?.has(doc._id);
 
     return (
         <motion.div 
@@ -37,11 +40,19 @@ const DoctorCard = ({ doc }) => {
                 )}
                 
                 {/* Availability Badge */}
-                <div className="absolute top-5 left-5 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full flex items-center gap-2 shadow-sm border border-white/50">
-                    <div className={`w-2 h-2 rounded-full ${doc.available ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-700">
-                        {doc.available ? 'Available' : 'Busy'}
-                    </span>
+                <div className="absolute top-5 left-5 flex flex-col gap-2">
+                    <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full flex items-center gap-2 shadow-sm border border-white/50">
+                        <div className={`w-2 h-2 rounded-full ${doc.available ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-700">
+                            {doc.available ? 'Available' : 'Busy'}
+                        </span>
+                    </div>
+                    {isOnline && (
+                        <div className="px-3 py-1 bg-blue-500/90 backdrop-blur-md rounded-full flex items-center gap-1.5 shadow-sm border border-white/20">
+                            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-white">Online</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Save Button */}

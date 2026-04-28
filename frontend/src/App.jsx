@@ -13,6 +13,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminSidebar from './components/AdminSidebar';
 import DoctorSidebar from './components/DoctorSidebar';
+import NotificationBell from './components/NotificationBell';
 import { assets as adminAssets } from './assets/assets_admin/assets';
 
 // Pages
@@ -56,6 +57,12 @@ const App = () => {
             </div>
 
             <div className='flex items-center gap-6'>
+              {/* Live Activity Feed */}
+              <NotificationBell 
+                token={aToken || dToken} 
+                type={aToken ? 'admin' : 'doctor'} 
+              />
+              
               <div className='hidden md:flex flex-col items-end'>
                 <p className='text-xs font-black text-gray-400 uppercase tracking-tighter'>Logged in as</p>
                 <p className='text-sm font-bold text-gray-700'>{aToken ? 'Administrator' : 'Medical Professional'}</p>

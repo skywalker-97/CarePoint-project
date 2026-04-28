@@ -165,8 +165,8 @@ const bookAppointment = async (req, res) => {
         await newAppointment.save();
 
         // Create Notifications
-        await createNotification(userId, `Appointment confirmed with Dr. ${docData.name} for ${slotDate} at ${slotTime}.`, "appointment", "/my-appointments");
-        await createNotification(docId, `New appointment booked by ${userData.name} for ${slotDate} at ${slotTime}.`, "appointment", "/doctor-appointments");
+        await createNotification(userId, `Appointment confirmed with Dr. ${docData.name} for ${slotDate} at ${slotTime}.`, "appointment", "/my-appointments", true);
+        await createNotification(docId, `New appointment booked by ${userData.name} for ${slotDate} at ${slotTime}.`, "appointment", "/doctor-appointments", true);
 
         // Sending confirmation email
         const { to, subject, html } = {

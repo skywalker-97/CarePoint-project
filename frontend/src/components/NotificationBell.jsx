@@ -8,11 +8,12 @@ import { useNavigate } from 'react-router-dom';
 const NotificationBell = ({ token, type = 'user' }) => {
     const [notifications, setNotifications] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
-    const { backendUrl } = useContext(AppContext);
+    const { backendUrl, socket } = useContext(AppContext);
     const navigate = useNavigate();
 
     const fetchNotifications = async () => {
         try {
+            if (type === 'admin') return; // Admins are currently real-time only or we can add a route
             const endpoint = type === 'user' ? '/api/notifications/user' : '/api/notifications/doctor';
             const headerKey = type === 'user' ? 'token' : 'dToken';
             const { data } = await axios.get(backendUrl + endpoint, { headers: { [headerKey]: token } });
@@ -38,10 +39,21 @@ const NotificationBell = ({ token, type = 'user' }) => {
     useEffect(() => {
         if (token) {
             fetchNotifications();
-            const interval = setInterval(fetchNotifications, 30000); // Polling every 30s
-            return () => clearInterval(interval);
+            
+            // Real-time updates
+            if (socket) {
+                socket.on('notification', (data) => {
+                    setNotifications(prev => [data, ...prev]);
+                });
+            }
         }
-    }, [token]);
+
+        return () => {
+            if (socket) {
+                socket.off('notification');
+            }
+        };
+    }, [token, socket]);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 

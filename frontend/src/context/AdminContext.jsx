@@ -1,18 +1,40 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { enhanceDoctorsWithImages } from '../utils/imageHelper';
+import { AppContext } from "./AppContext";
 
 export const AdminContext = createContext();
 
 const AdminContextProvider = (props) => {
 
+    const { socket } = useContext(AppContext);
     const [aToken, setAToken] = useState(localStorage.getItem('aToken') ? localStorage.getItem('aToken') : '');
     const [doctors, setDoctors] = useState([]);
     const [appointments, setAppointments] = useState([]);
     const [dashData, setDashData] = useState(false);
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+
+    // Socket listeners for admin
+    useEffect(() => {
+        if (aToken && socket) {
+            socket.emit('join_admin');
+            
+            socket.on('notification', (data) => {
+                // Refresh data for admin
+                if (data.type === 'appointment' || data.type === 'registration') {
+                    getAllAppointments();
+                    getDashData();
+                    getAllDoctors();
+                }
+            });
+        }
+
+        return () => {
+            if (socket) socket.off('notification');
+        };
+    }, [aToken, socket]);
 
     const getAllDoctors = async () => {
         try {

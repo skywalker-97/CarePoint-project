@@ -1,18 +1,47 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { getDoctorImage } from '../utils/imageHelper';
+import { AppContext } from "./AppContext";
 
 export const DoctorContext = createContext();
 
 const DoctorContextProvider = (props) => {
-
+    const { socket } = useContext(AppContext);
     const [dToken, setDToken] = useState(localStorage.getItem('dToken') ? localStorage.getItem('dToken') : '');
     const [appointments, setAppointments] = useState([]);
     const [dashData, setDashData] = useState(false);
     const [profileData, setProfileData] = useState(false);
     
     const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+
+    // Socket listeners for doctor
+    useEffect(() => {
+        if (dToken && profileData?._id && socket) {
+            socket.emit('join', profileData._id);
+            socket.emit('doctor_online', profileData._id);
+            
+            socket.on('notification', (data) => {
+                // Refresh data on relevant notifications
+                if (data.type === 'appointment') {
+                    getAppointments();
+                    getDashData();
+                }
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off('notification');
+            }
+        };
+    }, [dToken, profileData, socket]);
+
+    useEffect(() => {
+        if (dToken) {
+            getProfileData();
+        }
+    }, [dToken]);
 
     const getAppointments = async () => {
         try {

@@ -3,6 +3,7 @@ import { assets } from '../assets/assets_frontend/assets';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { DoctorContext } from '../context/DoctorContext';
+import { AdminContext } from '../context/AdminContext';
 import { ChevronDown, User, LayoutDashboard, LogOut, Settings, Menu, X } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import NotificationBell from './NotificationBell';
@@ -11,8 +12,9 @@ import { getDoctorImage } from '../utils/imageHelper';
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { token, setToken, userData } = useContext(AppContext);
+    const { token, setToken, userData, socket } = useContext(AppContext);
     const { dToken, setDToken, profileData } = useContext(DoctorContext);
+    const { aToken, setAToken } = useContext(AdminContext);
     const [isScrolled, setIsScrolled] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
 
@@ -65,9 +67,17 @@ const Navbar = () => {
                     </div>
                     {/* Brand Text */}
                     <div className="flex flex-col leading-none">
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] transition-colors duration-300"
-                            style={{ color: '#0D9488' }}
-                        >Healthcare</span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] font-black uppercase tracking-[0.3em] transition-colors duration-300"
+                                style={{ color: '#0D9488' }}
+                            >Healthcare</span>
+                            {socket && socket.connected && (
+                                <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-[6px] font-black uppercase text-emerald-600 tracking-tighter">Live</span>
+                                </div>
+                            )}
+                        </div>
                         <span className="font-black tracking-tight transition-colors duration-300"
                             style={{ fontSize: '18px', background: 'linear-gradient(90deg, #0D9488, #0891B2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
                         >CarePoint</span>
@@ -168,13 +178,24 @@ const Navbar = () => {
                                 </div>
                             </div>
                         </div>
+                    ) : aToken ? (
+                        <div className="flex items-center gap-4">
+                            <NotificationBell token={aToken} type="admin" />
+                            <div onClick={() => navigate('/admin-dashboard')} className="px-6 py-2 bg-slate-900 text-white rounded-full text-[11px] font-black uppercase tracking-widest cursor-pointer hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20">
+                                Admin Dashboard
+                            </div>
+                            <button onClick={logout} className="p-2 text-slate-400 hover:text-red-500 transition-all">
+                                <LogOut size={20} />
+                            </button>
+                        </div>
                     ) : (
                         <div className="hidden md:flex items-center gap-4">
                              <button onClick={() => navigate('/admin-login')} className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all mr-2">Admin Portal</button>
                              <button onClick={() => navigate('/login', { state: { mode: 'Login' } })} className="text-[13px] font-bold text-slate-500 hover:text-primary transition-all">Sign In</button>
                              <button onClick={() => navigate('/login', { state: { mode: 'Sign Up' } })} className="px-7 py-3 bg-primary text-white rounded-full text-[13px] font-bold shadow-xl shadow-blue-500/25 hover:scale-[1.05] active:scale-[0.98] transition-all">Create Account</button>
                         </div>
-                    )}
+                    )
+                }
 
                     {/* Mobile Menu Toggle */}
                     <button 

@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import doctorModel from '../models/doctorModel.js';
 import appointmentModel from '../models/appointmentModel.js';
 import userModel from '../models/userModel.js';
-import createNotification from '../utils/notify.js';
+import createNotification, { notifyAdmin } from '../utils/notify.js';
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -63,6 +63,9 @@ const addDoctor = async (req, res) => {
 
         const newDoctor = new doctorModel(doctorData);
         await newDoctor.save();
+
+        // Notify admin dashboard of new registration
+        notifyAdmin(`New doctor registered: ${name}`, 'registration');
 
         res.json({ success: true, message: "Doctor Added" });
 

@@ -13,7 +13,7 @@ import PaymentModal from '../components/PaymentModal';
 import { getDoctorImage } from '../utils/imageHelper';
 
 const MyAppointments = () => {
-    const { backendUrl, token, getDoctorsData, userData, currencySymbol, doctors } = useContext(AppContext);
+    const { backendUrl, token, getDoctorsData, userData, currencySymbol, doctors, socket } = useContext(AppContext);
     const [appointments, setAppointments] = useState([]);
     const [records, setRecords] = useState([]);
     const [activeTab, setActiveTab] = useState('appointments'); // 'appointments' | 'records'
@@ -160,8 +160,24 @@ const MyAppointments = () => {
             getUserAppointments();
             getMedicalRecords();
             getAIHealthTip();
+
+            // Real-time updates
+            if (socket) {
+                socket.on('notification', (data) => {
+                    if (data.type === 'appointment' || data.type === 'prescription' || data.type === 'approval') {
+                        getUserAppointments();
+                        getMedicalRecords();
+                    }
+                });
+            }
         }
-    }, [token]);
+
+        return () => {
+            if (socket) {
+                socket.off('notification');
+            }
+        };
+    }, [token, socket]);
 
     const stats = {
         totalAppointments: (appointments || []).length,

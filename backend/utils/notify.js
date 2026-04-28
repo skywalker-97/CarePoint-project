@@ -1,4 +1,5 @@
 import notificationModel from "../models/notificationModel.js";
+import { emitToUser } from "./socket.js";
 
 /**
  * Utility to create a notification for a user or doctor.
@@ -7,7 +8,20 @@ import notificationModel from "../models/notificationModel.js";
  * @param {string} type - 'success' | 'alert' | 'info' | 'appointment' | 'prescription' | 'approval'
  * @param {string} link - Optional URL for the frontend.
  */
-const createNotification = async (userId, message, type = 'info', link = "") => {
+/**
+ * Utility to notify all admins via the admin room.
+ */
+const notifyAdmin = (message, type = 'info', data = {}) => {
+    emitToUser('admin_room', 'notification', {
+        message,
+        type,
+        ...data,
+        createdAt: new Date(),
+        isAdmin: true
+    });
+};
+
+const createNotification = async (userId, message, type = 'info', link = "", notifyAdminsToo = false) => {
     try {
         const notification = new notificationModel({
             userId,
@@ -16,10 +30,29 @@ const createNotification = async (userId, message, type = 'info', link = "") => 
             link
         });
         await notification.save();
-        console.log(`Notification created for ${userId}: ${message}`);
+        
+        const payload = {
+            _id: notification._id,
+            message,
+            type,
+            link,
+            createdAt: notification.createdAt,
+            isRead: false
+        };
+
+        // Emit real-time notification to user
+        emitToUser(userId, 'notification', payload);
+
+        // Optionally notify admins
+        if (notifyAdminsToo) {
+            notifyAdmin(message, type, { link, userId });
+        }
+
+        console.log(`Notification created and emitted for ${userId}: ${message}`);
     } catch (error) {
         console.error("Error creating notification:", error);
     }
 };
 
+export { notifyAdmin };
 export default createNotification;

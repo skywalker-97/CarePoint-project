@@ -14,18 +14,16 @@ import prescriptionRouter from './routes/prescriptionRoute.js';
 import notificationRouter from './routes/notificationRoute.js';
 import invoiceRouter from './routes/invoiceRoute.js';
 
+import { initSocket } from './utils/socket.js';
+
 // app config
 const app = express();
 const port = process.env.PORT || 4000;
 const server = http.createServer(app);
 const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'];
 
-const io = new Server(server, {
-    cors: {
-        origin: allowedOrigins,
-        methods: ['GET', 'POST']
-    }
-});
+// Initialize Socket.IO
+initSocket(server, allowedOrigins);
 
 connectDB();
 
@@ -38,33 +36,6 @@ app.use(cors({ origin: (origin, callback) => {
         callback(new Error('Not allowed by CORS'));
     }
 }}));
-
-// socket.io connection
-io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
-
-    socket.on('join_room', (roomId) => {
-        socket.join(roomId);
-        console.log(`User joined room: ${roomId}`);
-    });
-
-    socket.on('send_message', (data) => {
-        // data should contain room, message, senderId, etc.
-        socket.to(data.roomId).emit('receive_message', data);
-    });
-
-    socket.on('typing', (data) => {
-        socket.to(data.roomId).emit('user_typing', data);
-    });
-
-    socket.on('stop_typing', (data) => {
-        socket.to(data.roomId).emit('user_stop_typing', data);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    });
-});
 
 // api endpoints
 app.use('/api/user', userRouter);

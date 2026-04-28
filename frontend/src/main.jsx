@@ -12,13 +12,13 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <ErrorBoundary>
-      <AdminContextProvider>
-        <DoctorContextProvider>
-          <AppContextProvider>
+      <AppContextProvider>
+        <AdminContextProvider>
+          <DoctorContextProvider>
             <App />
-          </AppContextProvider>
-        </DoctorContextProvider>
-      </AdminContextProvider>
+          </DoctorContextProvider>
+        </AdminContextProvider>
+      </AppContextProvider>
     </ErrorBoundary>
   </BrowserRouter>,
 )
