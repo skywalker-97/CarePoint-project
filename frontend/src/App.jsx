@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -102,24 +103,50 @@ const App = () => {
      );
   }
 
+  const location = useLocation();
+
   return (
     <div className='pt-16 md:pt-20 min-h-screen'>
+      {/* Top Loading Bar Simulation */}
+      <motion.div
+        key={location.pathname + "_bar"}
+        initial={{ width: "0%", opacity: 1 }}
+        animate={{ width: "100%", opacity: 0 }}
+        transition={{ duration: 0.8, ease: "circOut" }}
+        className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-primary to-emerald-400 z-[10000] pointer-events-none"
+      />
+
       <ToastContainer />
       <Navbar />
       <div className='w-full'>
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/doctors' element={<Doctors />} />
-          <Route path='/doctors/:speciality' element={<Doctors />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/admin-login' element={<AdminLogin />} />
-          <Route path='/doctor-profile' element={<DoctorProfile />} />
-          <Route path='/about' element={<About />} />
-          <Route path='/contact' element={<Contact />} />
-          <Route path='/my-profile' element={<MyProfile />} />
-          <Route path='/my-appointments' element={<MyAppointments />} />
-          <Route path='/appointment/:docId' element={<Appointment />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ 
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                mass: 0.5
+            }}
+          >
+            <Routes location={location}>
+              <Route path='/' element={<Home />} />
+              <Route path='/doctors' element={<Doctors />} />
+              <Route path='/doctors/:speciality' element={<Doctors />} />
+              <Route path='/login' element={<Login />} />
+              <Route path='/admin-login' element={<AdminLogin />} />
+              <Route path='/doctor-profile' element={<DoctorProfile />} />
+              <Route path='/about' element={<About />} />
+              <Route path='/contact' element={<Contact />} />
+              <Route path='/my-profile' element={<MyProfile />} />
+              <Route path='/my-appointments' element={<MyAppointments />} />
+              <Route path='/appointment/:docId' element={<Appointment />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
       </div>
       <Footer />
     </div>

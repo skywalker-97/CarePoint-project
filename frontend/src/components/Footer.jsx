@@ -5,6 +5,7 @@ import {
   Linkedin, ArrowUpRight, Shield, Globe, Award, Heart 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const Footer = () => {
   return (
@@ -62,19 +63,31 @@ const Footer = () => {
             <ul className='flex flex-col gap-5 text-[#64748B] font-bold'>
               {[
                 { name: 'Find Doctors', path: '/doctors' },
-                { name: 'AI Symptom Checker', path: '/' },
+                { name: 'AI Symptom Checker', path: '/#ai-symptom-checker' },
                 { name: 'Specialists', path: '/doctors' },
                 { name: 'Secure Portal', path: '/login' },
                 { name: 'Contact Concierge', path: '/contact' }
               ].map((item) => (
-                  <Link 
-                    to={item.path} 
-                    key={item.name} 
-                    className='flex items-center gap-2 hover:text-primary transition-all cursor-pointer group w-fit'
-                  >
-                      {item.name} 
-                      <ArrowUpRight size={14} className='opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-primary' />
-                  </Link>
+                  <motion.div key={item.name} whileTap={{ scale: 0.96 }}>
+                    <Link 
+                        to={item.path} 
+                        onClick={() => {
+                            if (item.path.includes('#')) {
+                                setTimeout(() => {
+                                    const id = item.path.split('#')[1];
+                                    const element = document.getElementById(id);
+                                    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 10);
+                            } else {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                        }}
+                        className='flex items-center gap-2 hover:text-primary transition-all cursor-pointer group w-fit'
+                    >
+                        {item.name} 
+                        <ArrowUpRight size={14} className='opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-primary' />
+                    </Link>
+                  </motion.div>
               ))}
             </ul>
           </div>
@@ -83,18 +96,26 @@ const Footer = () => {
           <div className="space-y-10">
             <h4 className='text-[10px] font-black text-slate-900 uppercase tracking-[0.4em]'>Contact</h4>
             <ul className='flex flex-col gap-6'>
-              <li className='flex items-center gap-4 group cursor-pointer'>
+              <motion.a 
+                href="tel:+1800CAREPT" 
+                whileTap={{ scale: 0.96 }}
+                className='flex items-center gap-4 group cursor-pointer'
+              >
                   <div className='w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-teal-50 transition-all'>
                       <Phone size={18} />
                   </div>
                   <span className='font-black text-slate-600 group-hover:text-slate-900 transition-colors'>+1 800 CAREPT</span>
-              </li>
-              <li className='flex items-center gap-4 group cursor-pointer'>
+              </motion.a>
+              <motion.a 
+                href="mailto:hello@carepoint.com" 
+                whileTap={{ scale: 0.96 }}
+                className='flex items-center gap-4 group cursor-pointer'
+              >
                   <div className='w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-teal-50 transition-all'>
                       <Mail size={18} />
                   </div>
                   <span className='font-black text-slate-600 group-hover:text-slate-900 transition-colors'>hello@carepoint.com</span>
-              </li>
+              </motion.a>
             </ul>
 
             <div className='pt-8 border-t border-slate-50 space-y-4'>

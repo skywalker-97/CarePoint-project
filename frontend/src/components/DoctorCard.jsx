@@ -11,11 +11,12 @@ const DoctorCard = ({ doc }) => {
 
     return (
         <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+            }}
             whileHover={{ y: -10 }}
-            onClick={() => { navigate(`/appointment/${doc._id}`); window.scrollTo(0, 0); }} 
+            onClick={() => { navigate(`/appointment/${doc._id}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
             className="group relative bg-white rounded-[40px] border border-slate-100 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 flex flex-col"
         >
             {/* Image Container with Glass Overlay */}

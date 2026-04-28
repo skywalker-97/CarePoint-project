@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { Search, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import DoctorCard from '../components/DoctorCard';
 
 const Doctors = () => {
@@ -141,11 +142,24 @@ const Doctors = () => {
                 {/* ---------- Doctors Grid ----------- */}
                 <div className='flex-1'>
                     {filterDoc.length > 0 ? (
-                        <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8'>
+                        <motion.div 
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: {
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.05
+                                    }
+                                }
+                            }}
+                            className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8'
+                        >
                             {filterDoc.map((item, index) => (
-                                <DoctorCard key={index} doc={item} />
+                                <DoctorCard key={item._id || index} doc={item} />
                             ))}
-                        </div>
+                        </motion.div>
                     ) : (
                         <div className='py-32 flex flex-col items-center justify-center text-center space-y-6'>
                             <div className='w-24 h-24 bg-slate-50 rounded-[40px] flex items-center justify-center text-slate-200'>
