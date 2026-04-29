@@ -7,8 +7,20 @@ const onlineDoctors = new Set(); // Set of doctorIds
 export const initSocket = (server, allowedOrigins) => {
     io = new Server(server, {
         cors: {
-            origin: allowedOrigins,
-            methods: ['GET', 'POST']
+            origin: (origin, callback) => {
+                if (!origin) return callback(null, true);
+                const isAllowed = allowedOrigins.some(allowed => 
+                    origin === allowed || 
+                    (typeof origin === 'string' && origin.endsWith('.onrender.com'))
+                );
+                if (isAllowed) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
+            methods: ['GET', 'POST'],
+            credentials: true
         }
     });
 

@@ -20,7 +20,11 @@ import { initSocket } from './utils/socket.js';
 const app = express();
 const port = process.env.PORT || 4000;
 const server = http.createServer(app);
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'https://carepoint-frontend.onrender.com'];
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://carepoint-frontend.onrender.com',
+    process.env.FRONTEND_URL
+].filter(Boolean);
 
 // Initialize Socket.IO
 initSocket(server, allowedOrigins);
@@ -29,13 +33,27 @@ connectDB();
 
 // middlewares
 app.use(express.json({ limit: '10mb' }));
-app.use(cors({ origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || (typeof origin === 'string' && origin.includes('render.com'))) {
-        callback(null, true);
-    } else {
-        callback(new Error('Not allowed by CORS'));
-    }
-}}));
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const isAllowed = allowedOrigins.some(allowed => 
+            origin === allowed || 
+            (typeof origin === 'string' && origin.endsWith('.onrender.com'))
+        );
+
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            console.log('CORS Blocked Origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'token', 'atoken', 'dtoken']
+}));
 
 // api endpoints
 app.use('/api/user', userRouter);
@@ -51,4 +69,4 @@ app.use('/api/invoice', invoiceRouter);
 
 app.get('/', (req, res) => res.send('API Working'));
 
-server.listen(port, () => console.log(`Server started on PORT ${port}`));
+server.listen(port, () => {console.log(`Server started on PORT ${port}`)});
