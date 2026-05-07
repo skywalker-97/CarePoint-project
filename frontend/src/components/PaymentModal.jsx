@@ -1,20 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldCheck, CreditCard, Landmark, Wallet, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { AppContext } from '../context/AppContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, amount, doctorName, currency }) => {
+const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, appointmentId, amount, doctorName, currency }) => {
+    const { backendUrl, token, userData } = useContext(AppContext);
     const [step, setStep] = useState('selection'); // 'selection' | 'processing' | 'success'
     const [selectedMethod, setSelectedMethod] = useState('card');
 
-    const handlePayment = () => {
-        setStep('processing');
-        // Simulate payment gateway delay
-        setTimeout(() => {
-            setStep('success');
-            setTimeout(() => {
-                onPaymentSuccess(`TXN_${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
-            }, 1500);
-        }, 2500);
+    const handlePayment = async () => {
+        try {
+            setStep('processing');
+            
+            // 1. Create Order
+            const { data } = await axios.post(
+                backendUrl + '/api/user/create-payment-order',
+                { appointmentId },
+                { headers: { token } }
+            );
+
+            if (!data.success) {
+                toast.error(data.message);
+                setStep('selection');
+                return;
+            }
+
+            // 2. Map selected method to Razorpay Config
+            const methodConfig = {
+                display: {
+                    blocks: {
+                        upi: {
+                            name: "Pay via UPI",
+                            instruments: [{ method: "upi" }]
+                        },
+                        card: {
+                            name: "Pay via Card",
+                            instruments: [{ method: "card" }]
+                        },
+                        netbanking: {
+                            name: "Pay via Netbanking",
+                            instruments: [{ method: "netbanking" }]
+                        }
+                    },
+                    sequence: [
+                        selectedMethod === 'upi' ? "block.upi" : selectedMethod === 'card' ? "block.card" : "block.netbanking",
+                        selectedMethod === 'upi' ? "block.card" : "block.upi",
+                        selectedMethod === 'netbanking' ? "block.card" : "block.netbanking"
+                    ],
+                    preferences: { show_default_blocks: true }
+                }
+            };
+
+            // 3. Initialize Razorpay Checkout
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_mock_key', // Enter the Key ID generated from the Dashboard
+                amount: data.order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                currency: data.order.currency,
+                name: "CarePoint Health",
+                description: `Consultation Fee - Dr. ${doctorName}`,
+                image: "https://cdn-icons-png.flaticon.com/512/3063/3063206.png", // Mock Logo
+                order_id: data.order.id, // This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+                config: methodConfig,
+                handler: function (response) {
+                    setStep('success');
+                    setTimeout(() => {
+                        onPaymentSuccess(response);
+                    }, 1000);
+                },
+                prefill: {
+                    name: userData?.name || "",
+                    email: userData?.email || "",
+                    contact: userData?.phone || ""
+                },
+                theme: {
+                    color: "#0ea5e9" // primary color
+                },
+                modal: {
+                    ondismiss: function() {
+                        setStep('selection');
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            
+            rzp.on('payment.failed', function (response){
+                toast.error(response.error.description);
+                setStep('selection');
+            });
+
+            rzp.open();
+
+        } catch (error) {
+            console.error("Payment error:", error);
+            toast.error("Failed to initialize payment");
+            setStep('selection');
+        }
     };
 
     if (!isOpen) return null;
@@ -101,8 +184,8 @@ const PaymentModal = ({ isOpen, onClose, onPaymentSuccess, amount, doctorName, c
                             <Loader2 size={48} className="text-primary animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Processing Payment</h3>
-                            <p className="text-slate-400 font-medium text-sm">Please do not refresh the page or close this window.</p>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Initializing Gateway</h3>
+                            <p className="text-slate-400 font-medium text-sm">Securely connecting to Razorpay...</p>
                         </div>
                     </div>
                 )}

@@ -374,7 +374,7 @@ const Home = () => {
                                         <p className='text-xs font-bold'>{item.experience || 'N/A'} Exp.</p>
                                     </div>
                                     <div className='w-1.5 h-1.5 rounded-full bg-slate-100' />
-                                    <p className='text-xs font-bold text-slate-900'>$50 / Visit</p>
+                                    <p className='text-xs font-bold text-slate-900'>₹50 / Visit</p>
                                 </div>
                                 <button className='w-full py-4 bg-slate-50 text-slate-600 group-hover:bg-primary group-hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all'>
                                     Book Now

@@ -1,0 +1,29 @@
+BACKEND LOGIC EXPLANATION (Asaan Bhasha Mein)
+
+1. Server (server.js):
+- Ye aapke project ka heart hai. Saara system yahan se start hota hai.
+- Ismein 'Express' use kiya gaya hai jo requests ko handle karta hai.
+- 'CORS' (Cross-Origin Resource Sharing) set kiya hai taaki frontend aur backend aapas mein safely baat kar sakein.
+- 'Socket.io' ko yahan initialize kiya gaya hai real-time features ke liye.
+
+2. Database (config/db.js):
+- MongoDB Atlas use kiya gaya hai cloud storage ke liye.
+- 'connectDB' function check karta hai ki database connect hua ya nahi. Agar MONGODB_URI missing hai toh ye error dikha deta hai.
+
+3. Routes & Controllers:
+Backend ko 3 main parts mein divide kiya gaya hai:
+- User (Patient): Register, Login, Appointment Book karna.
+- Doctor: Appointment check karna, Complete karna, Prescription dena.
+- Admin: Doctors ko add karna aur unhe verify karna.
+
+Controllers mein saari 'Business Logic' likhi hai:
+- Example: Jab koi appointment book karta hai, toh controller check karta hai ki wo slot (time) khali hai ya nahi. Agar khali hai, toh doctor aur patient dono ko notify karta hai.
+
+4. Models:
+- Ye database ka structure (schema) define karte hain.
+- 'userModel', 'doctorModel', 'appointmentModel' - ye batate hain ki database mein kya-kya save hoga (jaise name, email, fees, etc.).
+
+5. Middleware (authUser.js, authAdmin.js):
+- Ye security guards ki tarah hain.
+- Ye check karte hain ki request karne wala banda logged in hai ya nahi.
+- JWT (Token) ko verify karke hi aage ka access dete hain.

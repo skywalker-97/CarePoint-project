@@ -1,0 +1,25 @@
+FRONTEND LOGIC EXPLANATION (Asaan Bhasha Mein)
+
+1. React Components & Pages:
+- Humne Vite use kiya hai fast development ke liye.
+- Pages (Home, Doctors, Login, MyProfile) alag-alag modules mein hain.
+- 'Tailwind CSS' se designs banaye hain jo responsive hain (Mobile aur Desktop dono pe sahi chalte hain).
+
+2. Context API (Management):
+- Ye sabse important part hai. Isse hum "Global State" manage karte hain.
+- 'AppContext': Saare doctors ki list aur basic functions yahan hote hain.
+- 'AdminContext' aur 'DoctorContext': Specific dashboard data manage karte hain.
+- Fayda: Aapko baar-baar props pass nahi karne padte, kahin se bhi 'backendUrl' ya 'token' access kar sakte ho.
+
+3. Multi-Portal Routing:
+- Project mein 3 portals hain: Patient, Doctor, aur Admin.
+- 'React Router' use karke humne protected routes banaye hain.
+- Agar koi doctor admin wale page pe jane ki koshish karega, toh system use login page pe bhej dega.
+
+4. Form Handling:
+- Login aur Signup ke liye humne efficient form states banaye hain.
+- User input ko validate karte hain (Email format, Password strength) bhejte waqt.
+
+5. API Integration:
+- 'Axios' library use karke hum backend se data fetch karte hain.
+- Har function (like bookAppointment) ek POST ya GET request bhejta hai backend ko aur result display karta hai.

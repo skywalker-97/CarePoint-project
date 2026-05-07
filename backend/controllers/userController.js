@@ -6,6 +6,14 @@ import appointmentModel from '../models/appointmentModel.js';
 import doctorModel from '../models/doctorModel.js';
 import sendEmail from '../config/notifications.js';
 import createNotification from '../utils/notify.js';
+import razorpay from 'razorpay';
+import crypto from 'crypto';
+
+// Initialize Razorpay Instance
+const razorpayInstance = new razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_mock_key',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'rzp_test_mock_secret',
+});
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -139,7 +147,7 @@ const bookAppointment = async (req, res) => {
             { 
                 $addToSet: { [`slots_booked.${slotDate}`]: slotTime } 
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!updateDoc) {
@@ -253,25 +261,56 @@ const cancelAppointment = async (req, res) => {
     }
 }
 
-// API to verify payment (Simulated)
+// API to create Razorpay Order
+const createPaymentOrder = async (req, res) => {
+    try {
+        const { appointmentId } = req.body;
+        const appointmentData = await appointmentModel.findById(appointmentId);
+
+        if (!appointmentData) {
+            return res.json({ success: false, message: 'Appointment not found' });
+        }
+
+        const options = {
+            amount: appointmentData.amount * 100, // Amount in paise
+            currency: process.env.CURRENCY || "INR",
+            receipt: appointmentId,
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+        res.json({ success: true, order });
+    } catch (error) {
+        console.error("Razorpay Order Error:", error.error || error.message || error);
+        res.json({ success: false, message: error.error?.description || "Failed to create payment order. Please check Razorpay keys." });
+    }
+}
+
+// API to verify Razorpay Payment
 const verifyPayment = async (req, res) => {
     try {
-        const { userId, appointmentId, transactionId } = req.body;
+        const { userId, appointmentId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
         const appointmentData = await appointmentModel.findById(appointmentId);
 
         if (appointmentData.userId !== userId) {
             return res.json({ success: false, message: 'Unauthorized action' });
         }
 
-        if (transactionId) {
-            await appointmentModel.findByIdAndUpdate(appointmentId, { payment: true, transactionId });
+        // Verify Signature
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSign = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'rzp_test_mock_secret')
+            .update(sign.toString())
+            .digest("hex");
+
+        if (razorpay_signature === expectedSign) {
+            await appointmentModel.findByIdAndUpdate(appointmentId, { payment: true, transactionId: razorpay_payment_id });
             
             // Notification
             await createNotification(userId, `Payment successful for appointment with Dr. ${appointmentData.docData.name}.`, "success", "/my-appointments");
             
             res.json({ success: true, message: "Payment Successful" });
         } else {
-            res.json({ success: false, message: "Payment Failed" });
+            res.json({ success: false, message: "Payment Verification Failed" });
         }
     } catch (error) {
         console.log(error);
@@ -279,4 +318,4 @@ const verifyPayment = async (req, res) => {
     }
 }
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, verifyPayment };
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, createPaymentOrder, verifyPayment };

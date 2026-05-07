@@ -120,11 +120,17 @@ const MyAppointments = () => {
         }
     };
 
-    const handlePaymentSuccess = async (transactionId) => {
+    const handlePaymentSuccess = async (response) => {
         try {
+            const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = response;
             const { data } = await axios.post(
                 backendUrl + '/api/user/verify-payment',
-                { appointmentId: paymentConfig.appointmentId, transactionId },
+                { 
+                    appointmentId: paymentConfig.appointmentId, 
+                    razorpay_order_id, 
+                    razorpay_payment_id, 
+                    razorpay_signature 
+                },
                 { headers: { token } }
             );
             if (data.success) {
@@ -426,6 +432,7 @@ const MyAppointments = () => {
                     isOpen={!!paymentConfig}
                     onClose={() => setPaymentConfig(null)}
                     onPaymentSuccess={handlePaymentSuccess}
+                    appointmentId={paymentConfig.appointmentId}
                     amount={paymentConfig.amount}
                     doctorName={paymentConfig.doctorName}
                     currency={currencySymbol}

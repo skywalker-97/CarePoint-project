@@ -118,8 +118,7 @@ const AppContextProvider = (props) => {
             setUserData(null);
         }
     }, [token]);
-
-    const currency = '$';
+    const currency = '₹';
 
     const slotDateFormat = (slotDate) => {
         const dateArray = slotDate.split('_');
@@ -137,7 +136,7 @@ const AppContextProvider = (props) => {
     const value = {
         doctors,
         currency,
-        currencySymbol: '$',
+        currencySymbol: '₹',
         token,
         setToken,
         backendUrl,

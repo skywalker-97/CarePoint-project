@@ -1,0 +1,23 @@
+AI & REAL-TIME SOCKET LOGIC (Special Features)
+
+1. Google Gemini AI Integration:
+- Humne Google ka 'Gemini Pro' model use kiya hai.
+- Kaam kaise karta hai? Jab patient chatbot mein kuch likhta hai, toh wo message backend (`aiController.js`) pe jata hai.
+- Gemini AI us message ko analyze karta hai aur suggest karta hai ki aapko kis type ke doctor ki zarurat hai.
+- Teacher ko batane ke liye: "Humne Generative AI use kiya hai smart triage ke liye."
+
+2. Socket.io (Real-time Notifications):
+- Ye project ko "Premium" banata hai. Bina refresh kiye data update hota hai.
+- `initSocket`: server start hote hi connection open kar deta hai.
+- `emitToUser`: Jab admin kisi doctor ko approve karta hai, toh us doctor ko turant notification jata hai.
+- Jab user message bhejta hai, toh doosre bande ko bina page refresh kiye message mil jata hai.
+
+3. PDF Prescription Generation:
+- Humne 'PDFKit' use kiya hai.
+- Jab doctor appointment complete karta hai, toh ek digital prescription file (PDF) generate hoti hai.
+- Isse patient download kar sakta hai.
+
+4. JWT Security:
+- Har user ko login ke baad ek "Token" milta hai.
+- Jab bhi wo kuch sensitive kaam karte hain (jaise appointment cancel), toh token backend pe jata hai check hone ke liye.
+- Isse hackers aapke account ka data bina login ke nahi dekh sakte.
